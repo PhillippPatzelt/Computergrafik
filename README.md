@@ -4,4 +4,4 @@ This repository is a group work in the context of the computer graphics lecture 
 ## How to run
 Open up in VS-Code or other Text-Editor. Open up console, run with 'npm run dev'. 
 
-Developed with [Vite] (https://vitejs.dev/) and ThreeJS
+Developed with [Vite](https://vitejs.dev/) and ThreeJS
