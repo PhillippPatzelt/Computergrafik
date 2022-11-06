@@ -63,6 +63,19 @@ const loadCarriage = () => {
     );
 };
 
+const loadRoad = () => {
+    gltfLoader.load(
+        "objects/gravel_road/blenderRoad.glb",
+        (glb) => {
+            console.log(glb)
+            /* road = glb.scene.children[0];
+            road.scale.set(0.1,0.1,0.1);
+            road.position.set(0,0,0); */ 
+            scene.add(glb.scene)
+        }
+    )
+}
+
 const setupScene = () => {
     // add lighting to our scene
     const ambientlight = new THREE.AmbientLight(0xffffff, 3);
@@ -73,6 +86,7 @@ const setupScene = () => {
     scene.add(grid);
 
     loadCarriage();
+    loadRoad();
 };
 
 const animate = () => {
