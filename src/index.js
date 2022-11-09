@@ -6,15 +6,18 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { Vector3 } from "three";
 
-
 // Listener to catch keyboard inputs
 document.addEventListener("keydown", keyPressed, false);
 
 let mixer; // animation mixer
 let clips; // used to store our animations
 const clock = new THREE.Clock() // timer for animations
-let xSpeed = 0; // base speed of the carriage in the scene
+let xSpeed = 0.01; // base speed of the carriage in the scene
+let roadX,roadY,roadZ = 0 // Variable used to generate roads
 const scene = new THREE.Scene();
+let carriage;
+let roadArray = new Array();
+
 
 // our point of view, the camera
 const camera = new THREE.PerspectiveCamera(
@@ -32,22 +35,20 @@ renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.render(scene, camera);
 
-let carriage;
 
-const loadingManager = new THREE.LoadingManager();
-const gltfLoader = new GLTFLoader(loadingManager);
-
-const controls = new OrbitControls(camera, renderer.domElement);
-
-loadingManager.onLoad = () => {
-    camera.updateProjectionMatrix();
-    camera.translateZ(-0.2);
-    animate();
-};
-
-loadingManager.onProgress = (url, itemsLoaded, itemsTotal) => {
-    console.log("Loaded " + itemsLoaded + " of " + itemsTotal + " files.");
-};
+const loadRoad = (x,y,z) => {
+    let loadedRoad;
+    gltfLoader.load(
+        "objects/gravel_road/blenderRoad.glb",
+        (glb) => {
+            roadArray.unshift(glb.scene.children[0]);
+            roadArray[0].scale.set(0.1,0.1,0.1);
+            roadArray[0].position.set(x,y+0.07,z);
+            roadArray[0].rotateY(Math.PI/2);
+            scene.add(glb.scene)
+        }
+    )
+}
 
 const loadCarriage = () => {
     gltfLoader.load(
@@ -63,37 +64,55 @@ const loadCarriage = () => {
     );
 };
 
-const loadRoad = () => {
-    gltfLoader.load(
-        "objects/gravel_road/blenderRoad.glb",
-        (glb) => {
-            console.log(glb)
-            /* road = glb.scene.children[0];
-            road.scale.set(0.1,0.1,0.1);
-            road.position.set(0,0,0); */ 
-            scene.add(glb.scene)
-        }
-    )
-}
+const loadingManager = new THREE.LoadingManager();
+const gltfLoader = new GLTFLoader(loadingManager);
+const controls = new OrbitControls(camera, renderer.domElement);
 
+loadingManager.onLoad = () => {
+    camera.updateProjectionMatrix();
+    camera.translateZ(-0.2);
+    animate();
+};
+
+loadingManager.onProgress = (url, itemsLoaded, itemsTotal) => {
+    console.log("Loaded " + itemsLoaded + " of " + itemsTotal + " files.");
+};
+
+
+
+
+
+/**
+ * This function adds everything we need to our scene
+ */
 const setupScene = () => {
     // add lighting to our scene
     const ambientlight = new THREE.AmbientLight(0xffffff, 3);
     scene.add(ambientlight);
-    // background color and grid
-    renderer.setClearColor(0xA3A3A3);
-    const grid = new THREE.GridHelper(30,300);
-    scene.add(grid);
 
+    const texLoader = new THREE.CubeTextureLoader();
+    // need to alter Skybox
+    const texture = texLoader.load([
+        "./Skyboxes/Textures/SkyMidNight_Right.png", // 1, posX
+        "./Skyboxes/Textures/SkyMidNight_Left.png", // 2, negX
+        "./Skyboxes/Textures/SkyMidNight_Top.png",  // 3 , posY
+        "./Skyboxes/Textures/SkyMidNight_Bottom.png", // 4 , negY
+        "./Skyboxes/Textures/SkyMidNight_Front.png", // 5, posZ
+        "./Skyboxes/Textures/SkyMidNight_Back.png",  // 6, negZ
+    ]);
+    scene.background = texture;
+    const grid = new THREE.GridHelper(30,300);
+    //scene.add(grid);
+    // We need to load our objects
     loadCarriage();
-    loadRoad();
+    loadRoad(roadX,roadY,roadZ);
+    roadX += 1;
 };
 
 const animate = () => {
     // store the position of our carriage for updating camera
     const oldCarriagePosition = new Vector3();
     carriage.getWorldPosition(oldCarriagePosition);
-
     requestAnimationFrame(animate);
     // controls.update(); // used to focus camera on center 
     if(mixer) // dont try to update animations, if they are not created yet
@@ -101,8 +120,11 @@ const animate = () => {
     // get delta is our pointer inside the animation, in other words: What Frame is currently showing?
     updateCarriage()    // make sure our carriage is updated
     updateCamera(oldCarriagePosition)
+    
     renderer.render(scene, camera); // render the updated scene
 };
+
+
 /**
  * This function is used to update animations and position of the carriage accordingly
  * It checks for the x-axis speed of the carriage and evaluates it.
