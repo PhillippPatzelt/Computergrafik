@@ -14,22 +14,30 @@ let gamestarted = false;
 let clips; // used to store our animations
 const clock = new THREE.Clock(); // timer for animations
 let xSpeed; // base speed of the carriage in the scene
+let zSpeed;
 const scene = new THREE.Scene();
 let hasLoaded = false;
 let carriage;
 let carriageBox;
+let wolvesArray = new Array();
+let wolvesBoxArray = new Array();
 let wallArray = new Array();
 let wallBoxArray = new Array();
 let tree2Array = new Array();
 let tree2BoxArray =  new Array();
+let tree3Array = new Array();
+let tree3BoxArray = new Array();
 let roadArray = new Array();
 let isFirstTime = true;
 let currentLastRoad = 0;    // determine which road needs to be set forward
 let currentLastTree2 = 0;
+let currentLastTree3 = 0;
+let currentLastWall = 0;
 let roadPositionsZ = [-0.23, 0, 0.23];  // left road, middle road, right road
 const highscoreElement = document.getElementById("highscore");
 const gameoverElement = document.getElementById("gameover");
 const canvasElement = document.querySelector(".canv");
+const welcomeElement = document.getElementById("welcome")
 gameoverElement.style.visibility='hidden';
 highscoreElement.style.visibility='hidden';
 canvasElement.style.visibility="hidden";
@@ -84,30 +92,39 @@ function loadRoad(){
         });
 }
 
+/**
+ * This function loads all of the walls. It just loads one texture and copys it several times
+ * The x-distance of the road is needed for calculating where the next wall texture has to 
+ * be in order for the patterns to match.
+ */
 function loadWalls(){
     let arrayLength;
+    let xDistanceWall;
     gltfLoader.load(
         "objects/Wall/stone_wall_nr2.glb",
         (gltf) => {
             // left side
             for(let i=0; i<5; i++){
                 arrayLength = wallArray.push(gltf.scene.clone().children[0]);
-                wallArray[arrayLength-1].scale.set(0.7,0.7,0.7);
-                wallArray[arrayLength-1].position.set(15*i,1.15,2.4);
-                scene.add(wallArray[arrayLength-1])
                 wallBoxArray.push(new Box3().setFromObject(wallArray[arrayLength-1]));
+                //xDistanceWall = Math.abs(wallBoxArray[arrayLength-1].min.x - wallBoxArray[arrayLength-1].max.x)
+                wallArray[arrayLength-1].scale.set(0.7,0.7,0.7);
+                wallArray[arrayLength-1].position.set((i*14),1.15,2.4);
+                scene.add(wallArray[arrayLength-1]);
             }
             // right side
             for(let i=0; i<5; i++){
                 arrayLength = wallArray.push(gltf.scene.clone().children[0]);
-                wallArray[arrayLength-1].scale.set(0.7,0.7,0.7);
-                wallArray[arrayLength-1].position.set(14*i,1.15,-2.4);
-                wallArray[arrayLength-1].rotateZ(Math.PI+Math.PI/65)
-                wallArray[arrayLength-1].rotateX(-Math.PI/6.3)
-                wallArray[arrayLength-1].rotateY(Math.PI/28)
-                scene.add(wallArray[arrayLength-1])
                 wallBoxArray.push(new Box3().setFromObject(wallArray[arrayLength-1]));
+                //xDistanceWall = Math.abs(wallBoxArray[arrayLength-1].min.x - wallBoxArray[arrayLength-1].max.x)
+                wallArray[arrayLength-1].scale.set(0.7,0.7,0.7);
+                wallArray[arrayLength-1].position.set((i*15),1.15,-2.4);
+                wallArray[arrayLength-1].rotateZ(Math.PI+Math.PI/65);
+                wallArray[arrayLength-1].rotateX(-Math.PI/6.3);
+                wallArray[arrayLength-1].rotateY(Math.PI/28);
+                scene.add(wallArray[arrayLength-1]);
             }
+            console.log(wallArray)
         });
 }
 
@@ -131,22 +148,72 @@ const loadCarriage = () => {
     );
 };
 
+const loadWolves = () => {
+    let arrayLength;
+    gltfLoader.load(
+        "objects/wolf/magic_wolf.glb",
+        (glb) => {
+            for(let i=0; i<5; i++){
+                arrayLength = wolvesArray.push(glb.scene.clone().children[0]);
+                console.log(glb.scene.children[0])
+                wolvesArray[arrayLength-1].scale.set(0.0002,0.0002,0.0002);
+                wolvesArray[arrayLength-1].position.set(5*i+20,-0.1,0);
+                scene.add(wolvesArray[arrayLength-1]);
+                mixer = new THREE.AnimationMixer(wolvesArray[arrayLength-1]); // create animation mixer for current object
+                clips = glb.animations;   // all of our clips
+                wolvesBoxArray.push(new Box3().setFromObject(wolvesArray[arrayLength-1]));
+            }
+
+
+
+/*             const size = box.getSize(new Vector3()).length();
+            const center = box.getCenter(new Vector3()); */
+        }
+    );
+};
+
 const loadTrees2 = () => {
     let arrayLength;
     gltfLoader.load(
         "objects/obstacles/baum2.glb",
         (glb) => {
-            for(let i=0; i<20; i++){
+            for(let i=0; i<10; i++){
+                /* z-position   left side: -0.23 
+                                middle: 0
+                                right side: 0.23*/
+                arrayLength = tree2Array.push(glb.scene.clone().children[0]);
+                tree2Array[arrayLength-1].scale.set(0.05,0.05,0.05);
+                tree2Array[arrayLength-1].position.set(0.538*i*10+5,0.05,roadPositionsZ[getRandomInt(3)]);
+                scene.add(tree2Array[arrayLength-1]);
+                tree2BoxArray.push(new Box3().setFromObject(tree2Array[arrayLength-1]));
+                tree2BoxArray[arrayLength-1].max.z -= 0.05
+                tree2BoxArray[arrayLength-1].max.x -= 0.1
+                tree2BoxArray[arrayLength-1].min.x += 0.05
+            }
+        }
+    );
+};
+
+const loadTrees3 = () => {
+    let arrayLength;
+    gltfLoader.load(
+        "objects/obstacles/baum3.glb",
+        (glb) => {
+            for(let i=0; i<10; i++){
                 /* z-position   left side: -0.23 
                                 middle: 0
                                 right side: 0.23
                 */
-                arrayLength = tree2Array.push(glb.scene.clone().children[0]);
-                tree2Array[arrayLength-1].scale.set(0.05,0.05,0.05);
-                tree2Array[arrayLength-1].position.set(2*i+5,0.05,roadPositionsZ[getRandomInt(3)]);
-                scene.add(tree2Array[arrayLength-1]);
-                tree2BoxArray.push(new Box3().setFromObject(tree2Array[arrayLength-1]));
-                tree2BoxArray[arrayLength-1].max.z -= 0.05
+                arrayLength = tree3Array.push(glb.scene.clone().children[0]);
+                tree3Array[arrayLength-1].scale.set(0.05,0.05,0.05);
+                tree3Array[arrayLength-1].position.set(2*i+5,0.05,roadPositionsZ[getRandomInt(3)]);
+                scene.add(tree3Array[arrayLength-1]);
+                tree3BoxArray.push(new Box3().setFromObject(tree3Array[arrayLength-1]));
+                tree3BoxArray[arrayLength-1].max.z -= 0.05
+                tree3BoxArray[arrayLength-1].max.x -= 0.1
+                tree3BoxArray[arrayLength-1].min.x += 0.05
+                const helper = new THREE.Box3Helper(tree3BoxArray[arrayLength-1], 0xffff00)
+                scene.add(helper)
             }
         }
     );
@@ -190,6 +257,7 @@ async function setupScene(){
     loadRoad();
     loadTrees2();
     loadWalls();
+    loadWolves();
 };
 
 const animate = () => {
@@ -202,11 +270,12 @@ const animate = () => {
         mixer.update(clock.getDelta())
     // get delta is our pointer inside the animation, in other words: What Frame is currently showing?
     if(gamestarted){
-        //for(let j=0; j<20; j++){wallArray[6].rotateY(-Math.PI/2512) } - testing purpose
-        updateCarriage();    // make sure our carriage is updated
+        xSpeed += 0.01 / 1000
         updateRoads();      // make sure roads that are not rendered get moved to the front
         updateTrees2();
         updateCamera(oldCarriagePosition)
+        updateWalls();
+        updateCarriage();    // make sure our carriage is updated
         highscore += 0.5;
         highscoreElement.innerHTML = new String(highscore)
     }
@@ -226,13 +295,43 @@ function updateTrees2(){
     If the last Tree is out of the rendered view (More than 1 Road segments away), move it to the front 
     */
     if(diffToCarriage > 1){
-        tree2Array[currentLastTree2].position.x += 0.538*60;
-        tree2BoxArray[currentLastTree2].max.x += 0.538*60;
-        tree2BoxArray[currentLastTree2].min.x += 0.538*60;
+        tree2Array[currentLastTree2].position.x += 55.538
+
+        // Randomly generate if the tree is assigned to a new lane, so the pattern does not repeat
+        tree2Array[currentLastTree2].position.z = roadPositionsZ[getRandomInt(3)]
+        // When we move the tree we also need to move the boundingBox
+        tree2BoxArray[currentLastTree2] = new Box3().setFromObject(tree2Array[currentLastTree2])
+        tree2BoxArray[currentLastTree2].max.z -= 0.05
+        tree2BoxArray[currentLastTree2].max.x -= 0.1
+        tree2BoxArray[currentLastTree2].min.x += 0.05
+        const helper = new THREE.Box3Helper(tree2BoxArray[currentLastTree2], 0xffff00)
+        scene.add(helper)
         currentLastTree2++;
-    }
-    if(currentLastTree2 > 19){
+    } 
+    if(currentLastTree2 > 9){
         currentLastTree2 = 0;
+    }
+}
+
+function updateWalls(){
+    /*  carriage starting position is: (0,0.085,0)
+    because the carriage only moves in the x-direction it is the only thing 
+    we need to evaluate */
+    let carriageXPos  = carriage.position.x;
+    let currentLastWallXPos = wallArray[currentLastWall].position.x;
+    let diffToCarriage = carriageXPos - currentLastWallXPos;
+    /*
+    0.538 is the x-length of a single road segment, therefore we need to jump
+    40*x-length 
+    If the last Tree is out of the rendered view (More than 1 Road segments away), move it to the front 
+    */
+    if(diffToCarriage > 30){
+        wallArray[currentLastWall].position.x += 14*5;
+        wallArray[currentLastWall+5].position.x += 14*5;
+        currentLastWall++;
+    }
+    if(currentLastWall > 4){
+        currentLastWall = 0;
     }
 }
 /**
@@ -275,12 +374,14 @@ function updateRoads(){
 function updateCarriage(){
     carriageBox = new Box3().setFromObject(carriage);
     let doesCollide = carriageBox.intersectsBox(tree2BoxArray[currentLastTree2]);
-    console.log(carriageBox,tree2BoxArray[currentLastTree2])
-    console.log(xSpeed)
     if(doesCollide){
         gameOver();
     }  
     carriage.position.x += xSpeed;
+    carriage.position.z += zSpeed;
+    if(carriage.position.z >0.23 || carriage.position.z < -0.23 || (carriage.position.z < 0.001 && carriage.position.z > -0.001)){
+        zSpeed = 0;
+    }
     if (xSpeed > 0){
         clips.forEach(function(clip) {
             const action = mixer.clipAction(clip);
@@ -324,7 +425,7 @@ function updateCamera(oldPosition){
 }
 
 function keyPressed(event){
-    let keyNumber = event.which
+    let keyNumber = event.which;
     switch(keyNumber){
         case 27:
             if(!gamestarted && hasLoaded){
@@ -333,6 +434,7 @@ function keyPressed(event){
                 carriage.position.set(0,0.085,0);
                 camera.position.set(-1.25,1,0);
                 if(isFirstTime){
+                    welcomeElement.style.visibility="hidden"
                     camera.rotateY(-Math.PI/2);
                     camera.rotateX(-Math.PI/6.2);
                     isFirstTime = false;
@@ -340,17 +442,17 @@ function keyPressed(event){
                     rearrangeObjects();
                 }
                 xSpeed = 0.02;
+                zSpeed = 0;
                 gamestarted = true;
                 highscore = 0;
                 highscoreElement.style.visibility='visible';
-
             } 
             break;
         case 65:
-            carriage.position.z -= 0.23;
+            zSpeed = -0.015;
             break;
         case 68:
-            carriage.position.z += 0.23;
+            zSpeed = 0.015;
             break;
     }
 }
