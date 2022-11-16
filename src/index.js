@@ -2,7 +2,7 @@ import "./style.css";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 //import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { Box3, Vector3 } from "three";
+import { Box3, Vector3} from "three";
 
 
 // Listener to catch keyboard inputs
@@ -34,6 +34,8 @@ let currentLastTree2 = 0;
 let currentLastTree3 = 0;
 let currentLastWall = 0;
 let roadPositionsZ = [-0.23, 0, 0.23];  // left road, middle road, right road
+let gameMusic;
+let menuMusic;
 const highscoreElement = document.getElementById("highscore");
 const gameoverElement = document.getElementById("gameover");
 const canvasElement = document.querySelector(".canv");
@@ -151,21 +153,32 @@ const loadCarriage = () => {
 const loadWolves = () => {
     let arrayLength;
     gltfLoader.load(
-        "objects/wolf/magic_wolf.glb",
+        "objects/wolf/wolf_no_floor.glb",
         (glb) => {
-            for(let i=0; i<5; i++){
-                arrayLength = wolvesArray.push(glb.scene.clone().children[0]);
-                console.log(glb.scene.children[0])
-                wolvesArray[arrayLength-1].scale.set(0.0002,0.0002,0.0002);
-                wolvesArray[arrayLength-1].position.set(5*i+20,-0.1,0);
+            arrayLength = wolvesArray.push(glb.scene.children[0])
+            wolvesArray[arrayLength-1].scale.set(0.4,0.4,0.4);
+            wolvesArray[arrayLength-1].position.set(1,0.185,roadPositionsZ[0]);
+            scene.add(wolvesArray[0])
+            wolvesBoxArray.push(new Box3().setFromObject(wolvesArray[arrayLength-1]));
+            const helper = new THREE.Box3Helper(wolvesBoxArray[arrayLength-1], 0xffff00)
+            scene.add(helper) 
+            for(let i=0; i<2; i++){
+                arrayLength = wolvesArray.push(wolvesArray[0].clone())
+                wolvesArray[arrayLength-1].scale.set(0.4,0.4,0.4);
+                wolvesArray[arrayLength-1].position.set(1,0.185,roadPositionsZ[i+1]);
                 scene.add(wolvesArray[arrayLength-1]);
-                mixer = new THREE.AnimationMixer(wolvesArray[arrayLength-1]); // create animation mixer for current object
-                clips = glb.animations;   // all of our clips
                 wolvesBoxArray.push(new Box3().setFromObject(wolvesArray[arrayLength-1]));
+                const helper = new THREE.Box3Helper(wolvesBoxArray[arrayLength-1], 0xffff00)
+                scene.add(helper) 
             }
 
+/*                 let wolf = glb.scene.children[0];
+                wolf.scale.set(0.4,0.4,0.4)
+                wolf.position.set(10,0.185,0);
+                scene.add(wolf) */
 
 
+            console.log(wolvesArray)
 /*             const size = box.getSize(new Vector3()).length();
             const center = box.getCenter(new Vector3()); */
         }
@@ -227,6 +240,8 @@ loadingManager.onLoad = () => {
     camera.translateZ(-0.2);
     animate()
     hasLoaded = true;
+    menuMusic.play();
+    menuMusic.volume = 0.1;
 };
 
 loadingManager.onProgress = (url, itemsLoaded, itemsTotal) => {
@@ -258,6 +273,10 @@ async function setupScene(){
     loadTrees2();
     loadWalls();
     loadWolves();
+
+    // we set up our sounds
+    gameMusic = new Audio('./Sound/gameMusic.mp3')
+    menuMusic = new Audio('./Sound/menuMusic.mp3')
 };
 
 const animate = () => {
@@ -379,6 +398,12 @@ function updateCarriage(){
     }  
     carriage.position.x += xSpeed;
     carriage.position.z += zSpeed;
+
+    wolvesArray[0].position.x += xSpeed;
+    wolvesArray[1].position.x += xSpeed;
+    wolvesArray[2].position.x += xSpeed;
+    wolvesArray[2].position.set(11,0.185,0)
+
     if(carriage.position.z >0.23 || carriage.position.z < -0.23 || (carriage.position.z < 0.001 && carriage.position.z > -0.001)){
         zSpeed = 0;
     }
@@ -402,6 +427,7 @@ function gameOver(){
     highscoreElement.style.visibility='hidden';
     gameoverElement.style.visibility='visible';
     gameoverElement.innerHTML = "GAME OVER<br>PRESS ESC TO TRY AGAIN<br>YOUR HIGHSCORE WAS:" + String(highscore)
+    gameMusic.pause();  // when game over screen is showing, we need to pause our game
 } 
 
 /**
@@ -438,6 +464,8 @@ function keyPressed(event){
                     camera.rotateY(-Math.PI/2);
                     camera.rotateX(-Math.PI/6.2);
                     isFirstTime = false;
+                    menuMusic.pause()   // when game is started for the first time, stop the menu music
+                    gameMusic.play();   // and start the game music
                 } else{
                     rearrangeObjects();
                 }
