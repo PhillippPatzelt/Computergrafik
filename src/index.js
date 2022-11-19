@@ -19,7 +19,7 @@ let gamestarted = false;
 let clips; // used to store our animations
 let wolfClips = new Array();
 let wolfMixers = new Array();
-let wolfSetback;    // this variable is used to manage which wolf has been hit by an obstacle
+let wolfSetback = new Array();    // this variable is used to manage which wolf has been hit by an obstacle
 const clock = new THREE.Clock(); // timer for animations
 let xSpeed; // base speed of the carriage in the scene
 let zSpeed;
@@ -117,7 +117,6 @@ function loadWalls(){
             for(let i=0; i<wallsPerSide; i++){
                 arrayLength = wallArray.push(gltf.scene.clone().children[0]);
                 wallBoxArray.push(new Box3().setFromObject(wallArray[arrayLength-1]));
-                //xDistanceWall = Math.abs(wallBoxArray[arrayLength-1].min.x - wallBoxArray[arrayLength-1].max.x)
                 wallArray[arrayLength-1].scale.set(0.7,0.7,0.7);
                 wallArray[arrayLength-1].position.set((i*14),1.15,2.4);
                 scene.add(wallArray[arrayLength-1]);
@@ -406,27 +405,26 @@ function updateCarriage(){
         wolfDidCollide[i] = wolvesBoxArray[i].intersectsBox(tree2BoxArray[currentLastTree2]);
         if(wolfDidCollide[i]){
             wolfXSpeed[i] = xSpeed / 2  // if the wolf did collide, move it slowly out of the rendered view
-            wolfSetback = i
+            wolfSetback[i] = true;
+            console.log(i)
         }
     }
     // if wolf did not collide we can slowly move it back
     let carriageXPos  = carriage.position.x;
-    let diffToCarriage = carriageXPos - currentLastRoadXPos;
     let wolfPos;
-    switch(wolfSetback){
-        case 0:
-            // is wolf already back in rendered view
-            wolfPos = wolvesArray[0].position.x
-            diffToCarriage = carriageXPos - wolfPos
-            break;
-        case 1:
-            wolfPos = wolvesArray[0].position.x
-
-            break;
-        case 2:
-            break;
+    let diffToCarriage;
+    for(let i=0; i<3; i++){
+        if(wolfSetback[i]){
+            wolfPos = wolvesArray[i].position.x
+            diffToCarriage = Math.abs(carriageXPos) - Math.abs(wolfPos)
+            if(diffToCarriage > 4.5){
+                wolfXSpeed[i] = xSpeed + 0.01
+            } else if(diffToCarriage <= .75){
+                wolfXSpeed[i] = xSpeed;    // if wolf arrived back, reset Speed and make sure position is stable
+                wolvesArray[i].position.x = carriage.position.x-0.75  
+                wolfSetback[i] = false // reset wolfSetback 
+            }
     }
-
     if(carriage.position.z >0.23 || carriage.position.z < -0.23 || (carriage.position.z < 0.001 && carriage.position.z > -0.001)){
         zSpeed = 0;
     }
@@ -507,7 +505,7 @@ function keyPressed(event){
                 } else{
                     rearrangeObjects();
                 }
-                xSpeed = 0.04;
+                xSpeed = 0.02;
                 wolfXSpeed[0] = xSpeed;    // speed of the wolves should match that of the carriage
                 wolfXSpeed[1] = xSpeed;
                 wolfXSpeed[2] = xSpeed;
