@@ -53,7 +53,8 @@ let menuMusic;
 const highscoreElement = document.getElementById("highscore");
 const gameoverElement = document.getElementById("gameover");
 const canvasElement = document.querySelector(".canv");
-const welcomeElement = document.getElementById("welcome")
+const welcomeElement = document.querySelector(".welcome");
+const playButton = document.getElementById("play");
 gameoverElement.style.visibility='hidden';
 highscoreElement.style.visibility='hidden';
 canvasElement.style.visibility="hidden";
@@ -611,29 +612,7 @@ function keyPressed(event){
                 highscoreElement.style.visibility='visible';
                 gameoverElement.style.visibility="hidden";
                 camera.position.set(-1.25,1,0);
-            }else if(!gamestarted && hasLoaded){
-                gameoverElement.style.visibility="hidden";
-                canvasElement.style.visibility="visible"; // make canvas visible so that background is not visible anymore
-                carriage.position.set(0,0.085,0);
-                camera.position.set(-1.25,1,0);
-                if(isFirstTime){
-                    welcomeElement.style.visibility="hidden"
-                    camera.rotateY(-Math.PI/2);
-                    camera.rotateX(-Math.PI/5.6);
-                    isFirstTime = false;
-                    /* menuMusic.pause()   // when game is started for the first time, stop the menu music
-                    gameMusic.play();   // and start the game music */
-                } 
-                xSpeed = 0.02;
-                wolfXSpeed[0] = xSpeed;    // speed of the wolves should match that of the carriage
-                wolfXSpeed[1] = xSpeed;
-                wolfXSpeed[2] = xSpeed;
-                zSpeed = 0;
-                gamestarted = true;
-                highscore = 0;
-                highscoreElement.style.visibility='visible';
-
-            } 
+            }
             break;
         case 65:
             zSpeed = -0.015;
@@ -641,6 +620,32 @@ function keyPressed(event){
         case 68:
             zSpeed = 0.015;
             break;
+    }
+}
+
+playButton.onclick = function(){
+    playButton.style.visibility="hidden";
+    if(!gamestarted && hasLoaded){
+        gameoverElement.style.visibility="hidden";
+        canvasElement.style.visibility="visible"; // make canvas visible so that background is not visible anymore
+        carriage.position.set(0,0.085,0);
+        camera.position.set(-1.25,1,0);
+        if(isFirstTime){
+            welcomeElement.style.visibility="hidden"
+            camera.rotateY(-Math.PI/2);
+            camera.rotateX(-Math.PI/5.6);
+            isFirstTime = false;
+            /* menuMusic.pause()   // when game is started for the first time, stop the menu music
+            gameMusic.play();   // and start the game music */
+        } 
+        xSpeed = 0.02;
+        wolfXSpeed[0] = xSpeed;    // speed of the wolves should match that of the carriage
+        wolfXSpeed[1] = xSpeed;
+        wolfXSpeed[2] = xSpeed;
+        zSpeed = 0;
+        gamestarted = true;
+        highscore = 0;
+        highscoreElement.style.visibility='visible';
     }
 }
 setupScene();
