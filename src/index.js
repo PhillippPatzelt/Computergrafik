@@ -8,11 +8,13 @@ import { Box3, Vector3} from "three";
 let roadsPerLane = 15;
 let wallsPerSide = 2;
 let amountTree2 = 10;
+let amountBush1 = 10;
 
 // Listener to catch keyboard inputs
 document.addEventListener("keydown", keyPressed, false);
 
-let timePassed;
+let bGameOver = false;  // boolean for checking if game has ended
+let timePassed; // delta time since last frame has been renderer, used for animation updating
 let mixer; // animation mixer
 let highscore = 0; // high-score for the player
 let gamestarted = false;
@@ -82,7 +84,7 @@ function loadRoad(){
             for(let i=0; i<roadsPerLane; i++){
                 arrayLength = roadArray.push(glb.scene.clone().children[0]);
                 roadArray[arrayLength-1].scale.set(0.1,0.1,0.1);
-                roadArray[arrayLength-1].position.set(0.538*i,0.017,-0.23);
+                roadArray[arrayLength-1].position.set(0.538*i,0.017,roadPositionsZ[0]);
                 roadArray[arrayLength-1].rotateY(Math.PI/2);
                 roadArray[arrayLength-1].rotateX(-Math.PI/110);
                 scene.add(roadArray[arrayLength-1])
@@ -90,7 +92,7 @@ function loadRoad(){
             for(let i=0; i<roadsPerLane; i++){
                 arrayLength = roadArray.push(glb.scene.clone().children[0]);
                 roadArray[arrayLength-1].scale.set(0.1,0.1,0.1);
-                roadArray[arrayLength-1].position.set(0.538*i,0.017,0);
+                roadArray[arrayLength-1].position.set(0.538*i,0.017,roadPositionsZ[1]);
                 roadArray[arrayLength-1].rotateY(Math.PI/2);
                 roadArray[arrayLength-1].rotateX(-Math.PI/110);
                 scene.add(roadArray[arrayLength-1])
@@ -98,7 +100,7 @@ function loadRoad(){
             for(let i=0; i<roadsPerLane; i++){
                 arrayLength = roadArray.push(glb.scene.clone().children[0]);
                 roadArray[arrayLength-1].scale.set(0.1,0.1,0.1);
-                roadArray[arrayLength-1].position.set(0.538*i,0.017,0.23);
+                roadArray[arrayLength-1].position.set(0.538*i,0.017,roadPositionsZ[2]);
                 roadArray[arrayLength-1].rotateY(Math.PI/2);
                 roadArray[arrayLength-1].rotateX(-Math.PI/110);
                 scene.add(roadArray[arrayLength-1])
@@ -183,13 +185,13 @@ const loadTrees2 = () => {
     gltfLoader.load(
         "objects/obstacles/baum2.glb",
         (glb) => {
-            for(let i=0; i<10; i++){
+            for(let i=0; i<amountTree2; i++){
                 /* z-position   left side: -0.23 
                                 middle: 0
                                 right side: 0.23*/
                 arrayLength = tree2Array.push(glb.scene.clone().children[0]);
                 tree2Array[arrayLength-1].scale.set(0.05,0.05,0.05);
-                tree2Array[arrayLength-1].position.set(0.538*i*10+5,0.05,roadPositionsZ[getRandomInt(3)]);
+                tree2Array[arrayLength-1].position.set(0.538*i*amountTree2+(0.538*5),0.05,roadPositionsZ[getRandomInt(3)]);
                 scene.add(tree2Array[arrayLength-1]);
                 tree2BoxArray.push(new Box3().setFromObject(tree2Array[arrayLength-1]));
                 tree2BoxArray[arrayLength-1].max.z -= 0.05
@@ -218,8 +220,6 @@ const loadTrees3 = () => {
                 tree3BoxArray[arrayLength-1].max.z -= 0.05
                 tree3BoxArray[arrayLength-1].max.x -= 0.1
                 tree3BoxArray[arrayLength-1].min.x += 0.05
-                const helper = new THREE.Box3Helper(tree3BoxArray[arrayLength-1], 0xffff00)
-                scene.add(helper)
             }
         }
     );
@@ -243,8 +243,6 @@ const loadBushes1 = () => {
                 bush1BoxArray[arrayLength-1].max.z -= 0.05
                 bush1BoxArray[arrayLength-1].max.x -= 0.1
                 bush1BoxArray[arrayLength-1].min.x += 0.05
-                const helper = new THREE.Box3Helper(bush1BoxArray[arrayLength-1], 0xffff00)
-                scene.add(helper)
             }
         }
     );
@@ -304,7 +302,7 @@ const animate = () => {
     }
 
     // get delta is our pointer inside the animation, in other words: What Frame is currently showing?
-    if(gamestarted){
+    if(gamestarted && !bGameOver){
         xSpeed += 0.01 / 10000
         for(let i=0; i<3; i++){
             wolfXSpeed[i] += 0.01 / 10000
@@ -343,8 +341,6 @@ function updateBushes1(){
         bush1BoxArray[currentLastBush1].max.z -= 0.05
         bush1BoxArray[currentLastBush1].max.x -= 0.1
         bush1BoxArray[currentLastBush1].min.x += 0.05
-        const helper = new THREE.Box3Helper(bush1BoxArray[currentLastBush1], 0xffff00)
-        scene.add(helper)
         currentLastBush1++;
     } 
     if(currentLastBush1 > 9){
@@ -373,8 +369,6 @@ function updateTrees2(){
         tree2BoxArray[currentLastTree2].max.z -= 0.05
         tree2BoxArray[currentLastTree2].max.x -= 0.1
         tree2BoxArray[currentLastTree2].min.x += 0.05
-        const helper = new THREE.Box3Helper(tree2BoxArray[currentLastTree2], 0xffff00)
-        scene.add(helper)
         currentLastTree2++;
     } 
     if(currentLastTree2 > 9){
@@ -473,7 +467,6 @@ function updateCarriage(){
         if(wolfDidCollide[i]){
             wolfXSpeed[i] = xSpeed / 2  // if the wolf did collide, move it slowly out of the rendered view
             wolfSetback[i] = true;
-            console.log(i)
         }
     }
     wolvesArray[0].position.x += wolfXSpeed[0];
@@ -485,13 +478,11 @@ function updateCarriage(){
     let diffToCarriage;
     for(let i=0; i<3; i++){
         if(wolfSetback[i]){
-            console.log(wolfSetback[i])
             wolfPos = wolvesArray[i].position.x
             diffToCarriage = Math.abs(carriageXPos) - Math.abs(wolfPos)
             if(diffToCarriage > 3.5){
                 wolfXSpeed[i] = xSpeed + 0.01
             } else if(diffToCarriage <= .75){
-                console.log("Hello")
                 wolfXSpeed[i] = xSpeed;    // if wolf arrived back, reset Speed and make sure position is stable
                 wolvesArray[i].position.x = carriage.position.x-0.75  
                 wolfSetback[i] = false // reset wolfSetback 
@@ -533,6 +524,7 @@ function updateCarriage(){
 function gameOver(){
     xSpeed = 0; // if game is over, stop the carriage
     gamestarted = false;
+    bGameOver = true;
     highscoreElement.style.visibility='hidden';
     gameoverElement.style.visibility='visible';
     gameoverElement.innerHTML = "GAME OVER<br>PRESS ESC TO TRY AGAIN<br>YOUR HIGHSCORE WAS:" + String(highscore)
@@ -542,8 +534,49 @@ function gameOver(){
 /**
  * If the game gets restarted, all of the objects need to be reset
  */
-function rearrangeObjects(){
+function resetObjects(){
 
+    // left road
+    for(let i=0; i<roadsPerLane; i++){
+        roadArray[i].position.set(0.538*i,0.017,roadPositionsZ[0]);
+    }
+
+    // middle road
+    for(let i=0; i<roadsPerLane; i++){
+        roadArray[i+roadsPerLane].position.set(0.538*i,0.017,roadPositionsZ[1]);
+    }
+    // right road 
+    for(let i=0; i<roadsPerLane; i++){
+        roadArray[i+roadsPerLane*2].position.set(0.538*i,0.017,roadPositionsZ[2]);
+    }
+    // left wall 
+    for(let i=0; i<wallsPerSide; i++){
+        wallArray[i].position.set((i*14),1.15,2.4);
+    }
+    // right wall
+    for(let i=0; i<wallsPerSide; i++){
+        wallArray[i+wallsPerSide].position.set((i*15),1.15,-2.4);
+    }
+    carriage.position.set(0,0.085,0);   // reset carriage position
+    for(let i=0; i<3; i++){
+        wolvesArray[i].position.set(-.75,0.185,roadPositionsZ[i]);
+    }
+    for(let i=0; i<amountTree2; i++){
+        tree2Array[i].position.set(0.538*i*amountTree2+(0.538*5),0.05,roadPositionsZ[getRandomInt(3)]);
+        tree2BoxArray[i] = new Box3().setFromObject(tree2Array[i])
+        tree2BoxArray[i].max.z -= 0.05
+        tree2BoxArray[i].max.x -= 0.1
+        tree2BoxArray[i].min.x += 0.05
+    }
+    for(let i=0; i<amountBush1; i++){
+        bush1Array[i].position.set(2*i+3,-0.02,roadPositionsZ[getRandomInt(3)]);
+        bush1BoxArray[i] = new Box3().setFromObject(bush1Array[i])
+    }
+    currentLastBush1 = 0;
+    currentLastRoad = 0;
+    currentLastTree2 = 0;
+    currentLastWall = 0;
+    currentLastTree3 = 0;
 }
 
 /**
@@ -563,7 +596,22 @@ function keyPressed(event){
     let keyNumber = event.which;
     switch(keyNumber){
         case 27:
-            if(!gamestarted && hasLoaded){
+            if(bGameOver){
+                // if game is over, reset objects
+                resetObjects();
+                // game over is not true anymore
+                bGameOver = false;
+                xSpeed = 0.02;
+                wolfXSpeed[0] = xSpeed;    // speed of the wolves should match that of the carriage
+                wolfXSpeed[1] = xSpeed;
+                wolfXSpeed[2] = xSpeed;
+                zSpeed = 0;
+                gamestarted = true;
+                highscore = 0;
+                highscoreElement.style.visibility='visible';
+                gameoverElement.style.visibility="hidden";
+                camera.position.set(-1.25,1,0);
+            }else if(!gamestarted && hasLoaded){
                 gameoverElement.style.visibility="hidden";
                 canvasElement.style.visibility="visible"; // make canvas visible so that background is not visible anymore
                 carriage.position.set(0,0.085,0);
@@ -575,9 +623,7 @@ function keyPressed(event){
                     isFirstTime = false;
                     /* menuMusic.pause()   // when game is started for the first time, stop the menu music
                     gameMusic.play();   // and start the game music */
-                } else{
-                    rearrangeObjects();
-                }
+                } 
                 xSpeed = 0.02;
                 wolfXSpeed[0] = xSpeed;    // speed of the wolves should match that of the carriage
                 wolfXSpeed[1] = xSpeed;
@@ -586,7 +632,8 @@ function keyPressed(event){
                 gamestarted = true;
                 highscore = 0;
                 highscoreElement.style.visibility='visible';
-            }
+
+            } 
             break;
         case 65:
             zSpeed = -0.015;
