@@ -12,18 +12,76 @@
             <img src="images/castle.webp">
           </div>
         <div id="container">
-            <canvas class="canv"></canvas>
+            <canvas id="test" class="canv"></canvas>
             <div id="highscore"></div>
-            <div id="welcome">
-                Welcome to Carriage Ride <br>
-                This Web-App has been developed as a part of the computer graphics course at the DHBW Friedrichshafen.
+            <!-- Title Screen -->
+            <div id="home">
+                <div id="title-container">
+                    <p class="welcome">Carriage-Ride</p>
+                </div>
+                <button onclick="onIntro()" class="btn-base btn-intro">Introduction</button>
+                <button onclick="onControl()" class="btn-base btn-control">Controls</button>
+                <button onclick="onPlay()" class="btn-base btn-play">Play</button>
             </div>
-            
+                
+            <!-- Introduction -->
+            <div id="intro" class="hideContent">
+                <p class="contentBase">HIER STEHT IHR SAMPLE TEXT</p>
+                <button onclick="onBack()" class="btn-back">Back</button>
+            </div>
+
+            <!-- Controls -->
+            <div id="control" class="hideContent">
+                <div class="noOneWantsToBuildAWall">
+                    <p class="contentTitle">Header</p>
+                    <p class="contentBase">
+                        Prow scuttle parrel provost Sail ho shrouds spirits boom mizzenmast yardarm. Pinnace holystone mizzenmast quarter crow's nest nipperkin grog yardarm hempen halter furl. Swab barque interloper chantey doubloon starboard grog black jack gangway rutters.
+                        Deadlights jack lad schooner scallywag dance the hempen jig carouser broadside cable strike colors. Bring a spring upon her cable holystone blow the man down spanker Shiver me timbers to go on account lookout wherry doubloon chase. Belay yo-ho-ho keelhaul squiffy black spot yardarm spyglass sheet transom heave to.
+                        Trysail Sail ho Corsair red ensign hulk smartly boom jib rum gangway. Case shot Shiver me timbers gangplank crack Jennys tea cup ballast Blimey lee snow crow's nest rutters. Fluke jib scourge of the seven seas boatswain schooner gaff booty Jack Tar transom spirits.
+                    </p>
+                </div>
+                <button onclick="onBack()" class="btn-back">Back</button>
+            </div>
+
             <div id="gameover"></div>
             <script type="module" src="./index.js"></script>
         </div>
     </body>
 </html>
+
+<script type = "text/javascript">
+
+    let isIntro = false;
+    let isHome = true;
+
+    function onIntro() {
+        var showHome = document.getElementById("home");
+        var showIntro = document.getElementById("intro");
+        showHome.style.display = "none";
+        showIntro.style.display = "block";
+    }
+
+    function onControl() {
+        var showHome = document.getElementById("home");
+        var showControl = document.getElementById("control");
+        showHome.style.display = "none";
+        showControl.style.display = "block";
+    }
+
+    function onPlay() {
+        // WIP start game 
+    }
+
+    function onBack() {
+        var showHome = document.getElementById("home");
+        var showIntro = document.getElementById("intro");
+        var showControl = document.getElementById("control");
+        showHome.style.display = "block";
+        showIntro.style.display = "none";
+        showControl.style.display = "none";
+    }
+
+</script>
 
 <!-- Quellen bisher
 https://www.khronos.org/opengl/wiki/Cubemap_Texture - skybox erstellen
