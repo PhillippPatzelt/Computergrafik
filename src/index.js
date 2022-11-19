@@ -36,12 +36,15 @@ let tree2Array = new Array();
 let tree2BoxArray =  new Array();
 let tree3Array = new Array();
 let tree3BoxArray = new Array();
+let bush1Array = new Array();
+let bush1BoxArray = new Array();
 let roadArray = new Array();
 let isFirstTime = true;
 let currentLastRoad = 0;    // determine which road needs to be set forward
 let currentLastTree2 = 0;
 let currentLastTree3 = 0;
 let currentLastWall = 0;
+let currentLastBush1 = 0;
 let roadPositionsZ = [-0.23, 0, 0.23];  // left road, middle road, right road
 let gameMusic;
 let menuMusic;
@@ -222,6 +225,31 @@ const loadTrees3 = () => {
     );
 };
 
+const loadBushes1 = () => {
+    let arrayLength;
+    gltfLoader.load(
+        "objects/obstacles/bush1.glb",
+        (glb) => {
+            for(let i=0; i<10; i++){
+                /* z-position   left side: -0.23 
+                                middle: 0
+                                right side: 0.23
+                */
+                arrayLength = bush1Array.push(glb.scene.clone().children[0]);
+                bush1Array[arrayLength-1].scale.set(0.05,0.05,0.05);
+                bush1Array[arrayLength-1].position.set(2*i+3,-0.02,roadPositionsZ[getRandomInt(3)]);
+                scene.add(bush1Array[arrayLength-1]);
+                bush1BoxArray.push(new Box3().setFromObject(bush1Array[arrayLength-1]));
+                bush1BoxArray[arrayLength-1].max.z -= 0.05
+                bush1BoxArray[arrayLength-1].max.x -= 0.1
+                bush1BoxArray[arrayLength-1].min.x += 0.05
+                const helper = new THREE.Box3Helper(bush1BoxArray[arrayLength-1], 0xffff00)
+                scene.add(helper)
+            }
+        }
+    );
+};
+
 const loadingManager = new THREE.LoadingManager();
 const gltfLoader = new GLTFLoader(loadingManager);
 
@@ -243,7 +271,7 @@ loadingManager.onProgress = (url, itemsLoaded, itemsTotal) => {
  */
 async function setupScene(){
     // add lighting to our scene
-    const directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
+    const directionalLight = new THREE.DirectionalLight( 0xc2c5cc, 1 );
     scene.add(directionalLight);
 
     // We need to load our objects
@@ -254,6 +282,7 @@ async function setupScene(){
     loadWolf();
     loadWolf();
     loadWolf();
+    loadBushes1();
     // we set up our sounds
     gameMusic = new Audio('./Sound/gameMusic.mp3')
     menuMusic = new Audio('./Sound/menuMusic.mp3')
@@ -276,13 +305,14 @@ const animate = () => {
 
     // get delta is our pointer inside the animation, in other words: What Frame is currently showing?
     if(gamestarted){
-        xSpeed += 0.01 / 1000
+        xSpeed += 0.01 / 10000
         for(let i=0; i<3; i++){
-            wolfXSpeed[i] += 0.01 / 1000
+            wolfXSpeed[i] += 0.01 / 10000
         }
         
         updateRoads();      // make sure roads that are not rendered get moved to the front
         updateTrees2();
+        updateBushes1();
         updateCamera(oldCarriagePosition)
         updateWalls();
         updateCarriage();    // make sure our carriage is updated
@@ -292,6 +322,35 @@ const animate = () => {
     renderer.render(scene, camera); // render the updated scene
 };
 
+function updateBushes1(){
+    /*  carriage starting position is: (0,0.085,0)
+    because the carriage only moves in the x-direction it is the only thing 
+    we need to evaluate */
+    let carriageXPos  = carriage.position.x;
+    let currentLastBushXPos = bush1Array[currentLastBush1].position.x;
+    let diffToCarriage = carriageXPos - currentLastBushXPos;
+    /*
+    0.538 is the x-length of a single road segment, therefore we need to jump
+    40*x-length 
+    If the last Tree is out of the rendered view (More than 1 Road segments away), move it to the front 
+    */
+    if(diffToCarriage > 1){
+        bush1Array[currentLastBush1].position.x += 20
+        // Randomly generate if the tree is assigned to a new lane, so the pattern does not repeat
+        bush1Array[currentLastBush1].position.z = roadPositionsZ[getRandomInt(3)]
+        // When we move the tree we also need to move the boundingBox
+        bush1BoxArray[currentLastBush1] = new Box3().setFromObject(bush1Array[currentLastBush1])
+        bush1BoxArray[currentLastBush1].max.z -= 0.05
+        bush1BoxArray[currentLastBush1].max.x -= 0.1
+        bush1BoxArray[currentLastBush1].min.x += 0.05
+        const helper = new THREE.Box3Helper(bush1BoxArray[currentLastBush1], 0xffff00)
+        scene.add(helper)
+        currentLastBush1++;
+    } 
+    if(currentLastBush1 > 9){
+        currentLastBush1 = 0;
+    }
+}
 function updateTrees2(){
         /*  carriage starting position is: (0,0.085,0)
     because the carriage only moves in the x-direction it is the only thing 
@@ -322,7 +381,6 @@ function updateTrees2(){
         currentLastTree2 = 0;
     }
 }
-
 function updateWalls(){
     /*  carriage starting position is: (0,0.085,0)
     because the carriage only moves in the x-direction it is the only thing 
@@ -383,25 +441,34 @@ function updateRoads(){
  */
 function updateCarriage(){
     carriageBox = new Box3().setFromObject(carriage);
-    let doesCollide = carriageBox.intersectsBox(tree2BoxArray[currentLastTree2]);
+    let doesCollide = carriageBox.intersectsBox(tree2BoxArray[currentLastTree2]);   // did carriage hit a tree
     if(doesCollide){
         gameOver();
     }  
+    doesCollide = carriageBox.intersectsBox(bush1BoxArray[currentLastBush1]);   // did carriage hit a bush
+    if(doesCollide){
+        carriage.position.x -= xSpeed/8
+    }
+    for(let i=0; i<3; i++){
+        wolvesBoxArray[i] = new Box3().setFromObject(wolvesArray[i])    // get current box of the wolf
+        wolvesBoxArray[i].max.z -= 0.4  // adjust box in z Coordinates so it matches the lanes
+        wolvesBoxArray[i].min.z += 0.3
+    }
+    wolvesBoxArray.forEach(function(box) {
+        box.max.x += 0.35
+        doesCollide = carriageBox.intersectsBox(box)
+        if(doesCollide){
+            gameOver();
+        }
+    })
+
     carriage.position.x += xSpeed;
     carriage.position.z += zSpeed;
-
-    wolvesArray[0].position.x += wolfXSpeed[0];
-    wolvesArray[1].position.x += wolfXSpeed[1];
-    wolvesArray[2].position.x += wolfXSpeed[2];
 
     // if wolves have moved, check if they collided with the last tree
     let wolfDidCollide = new Array();
     
     for(let i=0; i<3; i++){
-        wolvesBoxArray[i] = new Box3().setFromObject(wolvesArray[i])    // get current box of the wolf
-        wolvesBoxArray[i].max.z -= 0.4  // adjust box in z Coordinates so it matches the lanes
-        wolvesBoxArray[i].min.z += 0.3
-
         wolfDidCollide[i] = wolvesBoxArray[i].intersectsBox(tree2BoxArray[currentLastTree2]);
         if(wolfDidCollide[i]){
             wolfXSpeed[i] = xSpeed / 2  // if the wolf did collide, move it slowly out of the rendered view
@@ -409,21 +476,27 @@ function updateCarriage(){
             console.log(i)
         }
     }
+    wolvesArray[0].position.x += wolfXSpeed[0];
+    wolvesArray[1].position.x += wolfXSpeed[1];
+    wolvesArray[2].position.x += wolfXSpeed[2];
     // if wolf did not collide we can slowly move it back
     let carriageXPos  = carriage.position.x;
     let wolfPos;
     let diffToCarriage;
     for(let i=0; i<3; i++){
         if(wolfSetback[i]){
+            console.log(wolfSetback[i])
             wolfPos = wolvesArray[i].position.x
             diffToCarriage = Math.abs(carriageXPos) - Math.abs(wolfPos)
-            if(diffToCarriage > 4.5){
+            if(diffToCarriage > 3.5){
                 wolfXSpeed[i] = xSpeed + 0.01
             } else if(diffToCarriage <= .75){
+                console.log("Hello")
                 wolfXSpeed[i] = xSpeed;    // if wolf arrived back, reset Speed and make sure position is stable
                 wolvesArray[i].position.x = carriage.position.x-0.75  
                 wolfSetback[i] = false // reset wolfSetback 
             }
+        }
     }
     if(carriage.position.z >0.23 || carriage.position.z < -0.23 || (carriage.position.z < 0.001 && carriage.position.z > -0.001)){
         zSpeed = 0;
