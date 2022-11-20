@@ -13,6 +13,8 @@ let amountBush1 = 10;
 // Listener to catch keyboard inputs
 document.addEventListener("keydown", keyPressed, false);
 
+let isIntro = false;
+let isHome = true;
 let bGameOver = false;  // boolean for checking if game has ended
 let timePassed; // delta time since last frame has been renderer, used for animation updating
 let mixer; // animation mixer
@@ -55,6 +57,14 @@ const gameoverElement = document.getElementById("gameover");
 const canvasElement = document.querySelector(".canv");
 const welcomeElement = document.querySelector(".welcome");
 const playButton = document.getElementById("play");
+const homeScreen = document.getElementById("home");
+const introductionScreen = document.getElementById("intro");
+const controlScreen = document.getElementById("control");
+const introductionButton = document.getElementById("introductionButton");
+const controlButton = document.getElementById("controlButton");
+const backButton1 = document.getElementById("backButton1");
+const backButton2 = document.getElementById("backButton2");
+
 gameoverElement.style.visibility='hidden';
 highscoreElement.style.visibility='hidden';
 canvasElement.style.visibility="hidden";
@@ -625,6 +635,7 @@ function keyPressed(event){
 
 playButton.onclick = function(){
     playButton.style.visibility="hidden";
+    homeScreen.style.visibility="hidden";
     if(!gamestarted && hasLoaded){
         gameoverElement.style.visibility="hidden";
         canvasElement.style.visibility="visible"; // make canvas visible so that background is not visible anymore
@@ -647,5 +658,27 @@ playButton.onclick = function(){
         highscore = 0;
         highscoreElement.style.visibility='visible';
     }
+}
+
+introductionButton.onclick = function(){
+    homeScreen.style.display = "none";
+    introductionScreen.style.display = "block";
+}
+
+controlButton.onclick = function(){
+    homeScreen.style.display = "none";
+    controlScreen.style.display = "block";
+}
+
+backButton1.onclick = function(){
+    homeScreen.style.display = "block";
+    introductionScreen.style.display = "none";
+    controlScreen.style.display = "none";
+}
+
+backButton2.onclick = function(){
+    homeScreen.style.display = "block";
+    introductionScreen.style.display = "none";
+    controlScreen.style.display = "none";
 }
 setupScene();

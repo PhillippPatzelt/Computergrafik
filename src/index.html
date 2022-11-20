@@ -19,24 +19,27 @@
                 <div id="title-container">
                     <p class="welcome">Carriage-Ride</p>
                 </div>
-                <button onclick="onIntro()" class="btn-base btn-intro">Introduction</button>
-                <button onclick="onControl()" class="btn-base btn-control">Controls</button>
+                <button class="btn-base btn-intro" id="introductionButton">Introduction</button>
+                <button class="btn-base btn-control" id="controlButton">Controls</button>
                 <button class="btn-base btn-play" id="play">Play</button>
             </div>
                 
             <!-- Introduction -->
             <div id="intro" class="hideContent">
-                <p class="contentBase">Eine Kutschfahrt ist eine angenehme Form der Bewegung. Besonders, wenn es sich um eine magische Kutsche handelt, welche ohne Pferde fahren kann.</p>
-                <p class="contentBase">Doch seitdem du vom Weg abgekommen bist, hat sich Dunkelheit breitgemacht und die breite Strasse ist zu einem engen Pfad geworden, welcher sich durch eine Schlucht schlängelt.</p>
-                <p class="contentBase">Turmhohe Bäume, deren Wipfel sich im schweren, grauen Nebel verlieren, halten alles ab außer einem gespenstisch grauen Licht. Die Baumstämme stehen unnatürlich nahe zusammen, im Wald herrscht die Stille eines vergessen Grabes, und doch verströmt er das Gefühl eines nicht artikulierten Schreis.</p>
-                <p class="contentBase">Die Reise wird durch ein Rascheln im Gebüsch unterbrochen, 3 riesige Wölfe huschen heraus, welche nicht freundlich aussehen.</p>
-                <p class="contentBase">Das Ziel von Carriage Ride ist es den Wölfen so lange wie möglich auszuweichen. Wie lange kannst du überleben?</p>
-                <button onclick="onBack()" class="btn-back">Back</button>
+                <div class="introduction">
+                    <p class="contentTitle">Introduction</p>
+                    <p class="contentBase">Eine Kutschfahrt ist eine angenehme Form der Bewegung. Besonders, wenn es sich um eine magische Kutsche handelt, welche ohne Pferde fahren kann.</p>
+                    <p class="contentBase">Doch seitdem du vom Weg abgekommen bist, hat sich Dunkelheit breitgemacht und die breite Strasse ist zu einem engen Pfad geworden, welcher sich durch eine Schlucht schlängelt.</p>
+                    <p class="contentBase">Turmhohe Bäume, deren Wipfel sich im schweren, grauen Nebel verlieren, halten alles ab außer einem gespenstisch grauen Licht. Die Baumstämme stehen unnatürlich nahe zusammen, im Wald herrscht die Stille eines vergessen Grabes, und doch verströmt er das Gefühl eines nicht artikulierten Schreis.</p>
+                    <p class="contentBase">Die Reise wird durch ein Rascheln im Gebüsch unterbrochen, 3 riesige Wölfe huschen heraus, welche nicht freundlich aussehen.</p>
+                    <p class="contentBase">Das Ziel von Carriage Ride ist es den Wölfen so lange wie möglich auszuweichen. Wie lange kannst du überleben?</p>
+                </div>
+                <button class="btn-back" id="backButton1">Back</button>
             </div>
 
             <!-- Controls -->
             <div id="control" class="hideContent">
-                <div class="noOneWantsToBuildAWall">
+                <div class="controls">
                     <p class="contentTitle">Controls</p>
                     <p class="contentBase">Die Kutsche fährt automatisch und wird immer schneller. Weiche den Hindernissen mit A und D aus.</p>
                     <p class="contentBase">A - Bewegen nach Links</p>
@@ -44,41 +47,10 @@
                     <p class="contentBase">Es gibt große Hindernisse, welche dich zum unmittelbaren Stop bringen und damit den Wölfen zum Fraß vorwerfen.</p>
                     <p class="contentBase">Es gibt kleine Hindernisse. Nachdem 2 kleine Hindernisse hintereinander angefahren wurden, bist du Wolfsfutter.</p>
                 </div>
-                <button onclick="onBack()" class="btn-back">Back</button>
+                <button class="btn-back" id="backButton2">Back</button>
             </div>
-
-            <div id="gameover"></div>
+            <div id="gameover"></div>          
             <script type="module" src="./index.js"></script>
         </div>
     </body>
 </html>
-
-<script type = "text/javascript">
-
-    let isIntro = false;
-    let isHome = true;
-
-    function onIntro() {
-        var showHome = document.getElementById("home");
-        var showIntro = document.getElementById("intro");
-        showHome.style.display = "none";
-        showIntro.style.display = "block";
-    }
-
-    function onControl() {
-        var showHome = document.getElementById("home");
-        var showControl = document.getElementById("control");
-        showHome.style.display = "none";
-        showControl.style.display = "block";
-    }
-
-    function onBack() {
-        var showHome = document.getElementById("home");
-        var showIntro = document.getElementById("intro");
-        var showControl = document.getElementById("control");
-        showHome.style.display = "block";
-        showIntro.style.display = "none";
-        showControl.style.display = "none";
-    }
-
-</script>
