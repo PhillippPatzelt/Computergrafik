@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 //import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { Box3, Vector3} from "three";
+import * as dat from "dat.gui";
 
 // constants that rule the flow of the program
 let roadsPerLane = 15;
@@ -14,6 +15,9 @@ let amountBush1 = 10;
 document.addEventListener("keydown", keyPressed, false);
 let audioGame = document.getElementById("audioGame");
 let audioMenu = document.getElementById("audioMenu")
+
+//create gui
+const gui = new dat.GUI();
 
 let bGameOver = false;  // boolean for checking if game has ended
 let timePassed; // delta time since last frame has been renderer, used for animation updating
@@ -273,8 +277,59 @@ loadingManager.onProgress = (url, itemsLoaded, itemsTotal) => {
  */
 async function setupScene(){
     // add lighting to our scene
-    const directionalLight = new THREE.DirectionalLight( 0xc2c5cc, 1 );
+    // add lighting to our scene
+    const directionalLight = new THREE.DirectionalLight( 0xf230e, 1 );
+    directionalLight.position.set( 0, -4, 0 );
+    directionalLight.castShadow = true;
+    directionalLight.intensity = 1.5;
+    directionalLight.color = new THREE.Color(0xf230e);
+    //add second light
+    const directionalLight2 = new THREE.DirectionalLight( 0x333830, 1 );
+    directionalLight2.position.set( 2, 1, 0 );
+    directionalLight2.castShadow = true;
+    directionalLight2.intensity = 3;
+    directionalLight2.color = new THREE.Color(0x333830);
+    //gui add light
+    const directionalLight3 = new THREE.DirectionalLight( 0x1c1205, 1 );
+    directionalLight3.position.set( -1.1, 4.9, 0.1 );
+    directionalLight3.castShadow = true;
+    directionalLight.intensity = 4;
+    directionalLight3.color = new THREE.Color(0x1c1205);
+
+    const light1 = gui.addFolder('Light 1');
+    const light2 = gui.addFolder('Light 2');
+    const light3 = gui.addFolder('Light 3');
+    light1.add(directionalLight, 'intensity', 0, 10, 0.1);
+    light1.add(directionalLight.position, 'x', -5, 5, 0.1);
+    light1.add(directionalLight.position, 'y', -5, 5, 0.1);
+    light1.add(directionalLight.position, 'z', -5, 5, 0.1);
+    light1.add(directionalLight, 'castShadow');
+    light2.add(directionalLight2, 'intensity', 0, 10, 0.1);
+    light2.add(directionalLight2.position, 'x', -5, 5, 0.1);
+    light2.add(directionalLight2.position, 'y', -5, 5, 0.1);
+    light2.add(directionalLight2.position, 'z', -5, 5, 0.1);
+    light2.add(directionalLight2, 'castShadow');
+    light3.add(directionalLight3, 'intensity', 0, 10, 0.1);
+    light3.add(directionalLight3.position, 'x', -5, 5, 0.1);
+    light3.add(directionalLight3.position, 'y', -5, 5, 0.1);
+    light3.add(directionalLight3.position, 'z', -5, 5, 0.1);
+    light3.add(directionalLight3, 'castShadow');
+    // gui color
+    const color = {    
+        color: 0xc2c5cc
+    };
+    light1.addColor(color, 'color').onChange(() => {
+        directionalLight.color.set(color.color);
+    });
+    light2.addColor(color, 'color').onChange(() => {
+        directionalLight2.color.set(color.color);
+    });
+    light3.addColor(color, 'color').onChange(() => {
+        directionalLight3.color.set(color.color);
+    });
     scene.add(directionalLight);
+    scene.add(directionalLight2);
+    scene.add(directionalLight3);
     // We need to load our objects
     loadCarriage();
     loadRoad();
@@ -299,9 +354,9 @@ const animate = () => {
 
     // get delta is our pointer inside the animation, in other words: What Frame is currently showing?
     if(gamestarted && !bGameOver){
-        xSpeed += 0.01 / 10000
+        xSpeed += 0.01 / 1000;
         for(let i=0; i<3; i++){
-            wolfXSpeed[i] += 0.01 / 10000
+            wolfXSpeed[i] += 0.01 / 1000;
         }
         
         updateRoads();      // make sure roads that are not rendered get moved to the front
