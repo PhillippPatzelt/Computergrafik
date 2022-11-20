@@ -12,9 +12,9 @@ let amountBush1 = 10;
 
 // Listener to catch keyboard inputs
 document.addEventListener("keydown", keyPressed, false);
+let audioGame = document.getElementById("audioGame");
+let audioMenu = document.getElementById("audioMenu")
 
-let isIntro = false;
-let isHome = true;
 let bGameOver = false;  // boolean for checking if game has ended
 let timePassed; // delta time since last frame has been renderer, used for animation updating
 let mixer; // animation mixer
@@ -35,7 +35,6 @@ let carriageBox;
 let wolvesArray = new Array();
 let wolvesBoxArray = new Array();
 let wallArray = new Array();
-let wallBoxArray = new Array();
 let tree2Array = new Array();
 let tree2BoxArray =  new Array();
 let tree3Array = new Array();
@@ -50,8 +49,6 @@ let currentLastTree3 = 0;
 let currentLastWall = 0;
 let currentLastBush1 = 0;
 let roadPositionsZ = [-0.23, 0, 0.23];  // left road, middle road, right road
-let gameMusic;
-let menuMusic;
 const highscoreElement = document.getElementById("highscore");
 const gameoverElement = document.getElementById("gameover");
 const canvasElement = document.querySelector(".canv");
@@ -132,7 +129,6 @@ function loadWalls(){
             // left side
             for(let i=0; i<wallsPerSide; i++){
                 arrayLength = wallArray.push(gltf.scene.clone().children[0]);
-                wallBoxArray.push(new Box3().setFromObject(wallArray[arrayLength-1]));
                 wallArray[arrayLength-1].scale.set(0.7,0.7,0.7);
                 wallArray[arrayLength-1].position.set((i*14),1.15,2.4);
                 scene.add(wallArray[arrayLength-1]);
@@ -140,8 +136,6 @@ function loadWalls(){
             // right side
             for(let i=0; i<wallsPerSide; i++){
                 arrayLength = wallArray.push(gltf.scene.clone().children[0]);
-                wallBoxArray.push(new Box3().setFromObject(wallArray[arrayLength-1]));
-                //xDistanceWall = Math.abs(wallBoxArray[arrayLength-1].min.x - wallBoxArray[arrayLength-1].max.x)
                 wallArray[arrayLength-1].scale.set(0.7,0.7,0.7);
                 wallArray[arrayLength-1].position.set((i*15),1.15,-2.4);
                 wallArray[arrayLength-1].rotateZ(Math.PI+Math.PI/65);
@@ -267,8 +261,7 @@ loadingManager.onLoad = () => {
     camera.translateZ(-0.2);
     animate()
     hasLoaded = true;
-    /* menuMusic.play();
-    menuMusic.volume = 0.1; */
+    audioMenu.play();
 };
 
 loadingManager.onProgress = (url, itemsLoaded, itemsTotal) => {
@@ -282,7 +275,6 @@ async function setupScene(){
     // add lighting to our scene
     const directionalLight = new THREE.DirectionalLight( 0xc2c5cc, 1 );
     scene.add(directionalLight);
-
     // We need to load our objects
     loadCarriage();
     loadRoad();
@@ -292,17 +284,10 @@ async function setupScene(){
     loadWolf();
     loadWolf();
     loadBushes1();
-    // we set up our sounds
-    gameMusic = new Audio('./Sound/gameMusic.mp3')
-    menuMusic = new Audio('./Sound/menuMusic.mp3')
 };
 
 const animate = () => {
-    // store the position of our carriage for updating camera
-    const oldCarriagePosition = new Vector3();
-    carriage.getWorldPosition(oldCarriagePosition);
     requestAnimationFrame(animate);
-    // controls.update(); // used to focus camera on center 
     timePassed = clock.getDelta();
     if(mixer) // dont try to update animations, if they are not created yet
         mixer.update(timePassed)
@@ -322,11 +307,11 @@ const animate = () => {
         updateRoads();      // make sure roads that are not rendered get moved to the front
         updateTrees2();
         updateBushes1();
-        updateCamera(oldCarriagePosition)
+        updateCamera();
         updateWalls();
         updateCarriage();    // make sure our carriage is updated
-        highscore += 0.5;
-        highscoreElement.innerHTML = new String(highscore)
+        highscore += 0.5/10;
+        highscoreElement.innerHTML = new String(Math.round(highscore),2)
     }
     renderer.render(scene, camera); // render the updated scene
 };
@@ -449,7 +434,7 @@ function updateCarriage(){
     let doesCollide = carriageBox.intersectsBox(tree2BoxArray[currentLastTree2]);   // did carriage hit a tree
     if(doesCollide){
         gameOver();
-    }  
+    }
     doesCollide = carriageBox.intersectsBox(bush1BoxArray[currentLastBush1]);   // did carriage hit a bush
     if(doesCollide){
         carriage.position.x -= xSpeed/8
@@ -538,8 +523,9 @@ function gameOver(){
     bGameOver = true;
     highscoreElement.style.visibility='hidden';
     gameoverElement.style.visibility='visible';
-    gameoverElement.innerHTML = "GAME OVER<br>PRESS ESC TO TRY AGAIN<br>YOUR HIGHSCORE WAS:" + String(highscore)
-    //gameMusic.pause();  // when game over screen is showing, we need to pause our game
+    gameoverElement.innerHTML = "GAME OVER<br>PRESS ESC TO TRY AGAIN<br>YOUR HIGHSCORE WAS:" + String(Math.round(highscore),2)
+    audioGame.pause();
+    audioMenu.play();
 } 
 
 /**
@@ -594,11 +580,7 @@ function resetObjects(){
  * This function is used to update the position of our camera, so that it will follow our carriage
  * through the scene
  */
-function updateCamera(oldPosition){
-    // access current 
-    const newCarriagePosition = new Vector3();
-    carriage.getWorldPosition(newCarriagePosition);
-    const delta = newCarriagePosition.clone().sub(oldPosition); // difference between the two points
+function updateCamera(){
     let difDelta = new Vector3(xSpeed,0,0)
     camera.position.add(difDelta) // add difference, to move to object 
 }
@@ -622,18 +604,27 @@ function keyPressed(event){
                 highscoreElement.style.visibility='visible';
                 gameoverElement.style.visibility="hidden";
                 camera.position.set(-1.25,1,0);
+                audioMenu.pause();
+                audioGame.play();
             }
             break;
         case 65:
-            zSpeed = -0.015;
+            if(carriage.position.z >-0.23){
+                zSpeed = -0.015;
+            }
+
             break;
         case 68:
+            if(carriage.position.z < 0.23)
             zSpeed = 0.015;
             break;
     }
 }
 
 playButton.onclick = function(){
+
+    audioMenu.pause();
+    audioGame.play();
     playButton.style.visibility="hidden";
     homeScreen.style.visibility="hidden";
     if(!gamestarted && hasLoaded){
@@ -646,8 +637,6 @@ playButton.onclick = function(){
             camera.rotateY(-Math.PI/2);
             camera.rotateX(-Math.PI/5.6);
             isFirstTime = false;
-            /* menuMusic.pause()   // when game is started for the first time, stop the menu music
-            gameMusic.play();   // and start the game music */
         } 
         xSpeed = 0.02;
         wolfXSpeed[0] = xSpeed;    // speed of the wolves should match that of the carriage
