@@ -1,6 +1,16 @@
 import { Box3, Vector3} from "three";
 import {gameOver, getRandomInt} from './index.js'
 import * as THREE from "three";
+
+/**
+ * This function is used to set forth the bushes, that have left the rendered view
+ * @param {3dObject} pCarriage 
+ * @param {3dObject Array} pBush1Array 
+ * @param {int} pCurrentLastBush1 
+ * @param {int Array} pRoadPositionsZ 
+ * @param {Box3 Array} pBush1BoxArray 
+ * @returns changed params
+ */
 function updateBushes1(pCarriage, pBush1Array, pCurrentLastBush1, pRoadPositionsZ, pBush1BoxArray){
     /*  carriage starting position is: (0,0.085,0)
     because the carriage only moves in the x-direction it is the only thing 
@@ -29,6 +39,15 @@ function updateBushes1(pCarriage, pBush1Array, pCurrentLastBush1, pRoadPositions
     }
     return {pCarriage, pBush1Array, pCurrentLastBush1, pRoadPositionsZ, pBush1BoxArray}
 }
+/**
+ * This function is used to set forth the trees, that have left the rendered view
+ * @param {3d Object} pCarriage 
+ * @param {3d Object Array} pTree2Array 
+ * @param {int} pCurrentLastTree2 
+ * @param {Box3 Array} pTree2BoxArray 
+ * @param {int Array} pRoadPositionsZ 
+ * @returns changed params
+ */
 function updateTrees2(pCarriage, pTree2Array, pCurrentLastTree2, pTree2BoxArray, pRoadPositionsZ){
         /*  carriage starting position is: (0,0.085,0)
     because the carriage only moves in the x-direction it is the only thing 
@@ -84,6 +103,11 @@ function updateWalls(pCarriage, pWallArray, pCurrentLastWall, pWallsPerSide){
  * This function moves the roads that are furthest behind the carriage and
  * moves them to the "end of the road", so that the street is technically
  * endless
+ * @param {3dObject} pCarriage 
+ * @param {3dObject Array} pRoadArray 
+ * @param {int} pCurrentLastRoad 
+ * @param {int} pRoadsPerLane 
+ * @returns changed params
  */
 function updateRoads(pCarriage, pRoadArray, pCurrentLastRoad, pRoadsPerLane){
     /*  carriage starting position is: (0,0.085,0)
@@ -116,12 +140,30 @@ function updateRoads(pCarriage, pRoadArray, pCurrentLastRoad, pRoadsPerLane){
 /**
  * This function is used to update animations and position of the carriage accordingly
  * It checks for the x-axis speed of the carriage and evaluates it.
+ * @param {3dObject} pCarriage 
+ * @param {Box3} pCarriageBox 
+ * @param {3dObject Array} pTree2BoxArray 
+ * @param {int} pCurrentLastTree2 
+ * @param {Box3 Array} pBush1BoxArray 
+ * @param {int} pCurrentLastBush1 
+ * @param {float} pXSpeed 
+ * @param {float} pZSpeed 
+ * @param {Box3 Array} pWolvesBoxArray 
+ * @param {3dObject Array} pWolvesArray 
+ * @param {float} pWolfXSpeed 
+ * @param {bool Array} pWolfSetback 
+ * @param {ThreeJS Mixer} pMixer 
+ * @param {clips} pClips 
+ * @param {ThreeJs Mixer} pWolfMixers 
+ * @param {clips} pWolfClips 
+ * @returns changed params plus bool for gameOver
  */
 function updateCarriage(pCarriage, pCarriageBox, pTree2BoxArray, pCurrentLastTree2, pBush1BoxArray, pCurrentLastBush1, pXSpeed, pZSpeed, pWolvesBoxArray, pWolvesArray, pWolfXSpeed, pWolfSetback,pMixer, pClips, pWolfMixers, pWolfClips){
     pCarriageBox = new Box3().setFromObject(pCarriage);
+    let cGameOver = false;
     let doesCollide = pCarriageBox.intersectsBox(pTree2BoxArray[pCurrentLastTree2]);   // did carriage hit a tree
     if(doesCollide){
-        gameOver();
+        cGameOver = true;
     }
     doesCollide = pCarriageBox.intersectsBox(pBush1BoxArray[pCurrentLastBush1]);   // did carriage hit a bush
     if(doesCollide){
@@ -136,7 +178,7 @@ function updateCarriage(pCarriage, pCarriageBox, pTree2BoxArray, pCurrentLastTre
         box.max.x += 0.35
         doesCollide = pCarriageBox.intersectsBox(box)
         if(doesCollide){
-            gameOver();
+            cGameOver = true;
         }
     })
 
@@ -176,7 +218,7 @@ function updateCarriage(pCarriage, pCarriageBox, pTree2BoxArray, pCurrentLastTre
     if(pCarriage.position.z >0.23 || pCarriage.position.z < -0.23 || (pCarriage.position.z < 0.001 && pCarriage.position.z > -0.001)){
         pZSpeed = 0;
     }
-    if (pXSpeed > 0){
+    if (!cGameOver){
         pClips.forEach(function(clip) {
             const action = pMixer.clipAction(clip);
             action.play()
@@ -203,6 +245,6 @@ function updateCarriage(pCarriage, pCarriageBox, pTree2BoxArray, pCurrentLastTre
             wolfAction.stop()
         }
     }
-    return{pCarriage, pCarriageBox, pTree2BoxArray, pCurrentLastTree2, pBush1BoxArray, pCurrentLastBush1, pXSpeed, pZSpeed, pWolvesBoxArray, pWolvesArray, pWolfXSpeed, pWolfSetback,pMixer, pClips, pWolfMixers, pWolfClips}
+    return{cGameOver,pCarriage, pCarriageBox, pTree2BoxArray, pCurrentLastTree2, pBush1BoxArray, pCurrentLastBush1, pXSpeed, pZSpeed, pWolvesBoxArray, pWolvesArray, pWolfXSpeed, pWolfSetback,pMixer, pClips, pWolfMixers, pWolfClips}
 }
 export{updateBushes1, updateCarriage, updateRoads, updateTrees2, updateWalls};

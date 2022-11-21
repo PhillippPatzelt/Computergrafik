@@ -1,7 +1,6 @@
 import "./style.css";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-//import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { Box3, Vector3} from "three";
 import * as dat from "dat.gui";
 import {updateBushes1, updateCarriage, updateRoads, updateTrees2, updateWalls} from './updateObjects.js'
@@ -13,46 +12,10 @@ let amountBush1 = 10;
 
 // Listener to catch keyboard inputs
 document.addEventListener("keydown", keyPressed, false);
+
+// HTML Elements
 let audioGame = document.getElementById("audioGame");
 let audioMenu = document.getElementById("audioMenu")
-
-//create gui
-const gui = new dat.GUI();
-let dataBuffer = new Array();   // used to buffer return values from refactored functions
-let bGameOver = false;  // boolean for checking if game has ended
-let timePassed; // delta time since last frame has been renderer, used for animation updating
-let mixer; // animation mixer
-let highscore = 0; // high-score for the player
-let gamestarted = false;
-let clips; // used to store our animations
-let wolfClips = new Array();
-let wolfMixers = new Array();
-let wolfSetback = new Array();    // this variable is used to manage which wolf has been hit by an obstacle
-const clock = new THREE.Clock(); // timer for animations
-let xSpeed; // base speed of the carriage in the scene
-let zSpeed;
-let wolfXSpeed = new Array();
-const scene = new THREE.Scene();
-let hasLoaded = false;
-let carriage;
-let carriageBox;
-let wolvesArray = new Array();
-let wolvesBoxArray = new Array();
-let wallArray = new Array();
-let tree2Array = new Array();
-let tree2BoxArray =  new Array();
-let tree3Array = new Array();
-let tree3BoxArray = new Array();
-let bush1Array = new Array();
-let bush1BoxArray = new Array();
-let roadArray = new Array();
-let isFirstTime = true;
-let currentLastRoad = 0;    // determine which road needs to be set forward
-let currentLastTree2 = 0;
-let currentLastTree3 = 0;
-let currentLastWall = 0;
-let currentLastBush1 = 0;
-let roadPositionsZ = [-0.23, 0, 0.23];  // left road, middle road, right road
 const highscoreElement = document.getElementById("highscore");
 const gameoverElement = document.getElementById("gameover");
 const canvasElement = document.querySelector(".canv");
@@ -65,11 +28,54 @@ const introductionButton = document.getElementById("introductionButton");
 const controlButton = document.getElementById("controlButton");
 const backButton1 = document.getElementById("backButton1");
 const backButton2 = document.getElementById("backButton2");
-
+// Styling Them
 gameoverElement.style.visibility='hidden';
 highscoreElement.style.visibility='hidden';
 canvasElement.style.visibility="hidden";
 
+// Variables
+const gui = new dat.GUI();  // control gui 
+let dataBuffer = new Array();   // used to buffer return values from refactored functions
+let bGameOver = false;  // boolean for checking if game has ended
+let timePassed; // delta time since last frame has been renderer, used for animation updating
+let mixer; // animation mixer
+let highscore = 0; // high-score for the player
+let gamestarted = false;    // is game started?
+let clips; // used to store our carriage animations
+let wolfClips = new Array();    // wolf animations
+let wolfMixers = new Array();   // manage wolf Animations
+let wolfSetback = new Array();    // this variable is used to manage which wolf has been hit by an obstacle
+const clock = new THREE.Clock(); // timer for animations
+let xSpeed; // base speed of the carriage in the scene
+let zSpeed; // speed of the carriage while moving to the side
+let wolfXSpeed = new Array(); // needed for setting back wolves after they've been hit
+const scene = new THREE.Scene();    // our scene which we render in
+let hasLoaded = false;  // bool for checking if game has loaded
+let carriage;   // carriage 3d Object
+let carriageBox;    // checking for carriage collision
+let wolvesArray = new Array();  // array of 3d Objects
+let wolvesBoxArray = new Array();   // checking for wolf collision
+let wallArray = new Array();    // array of 3d objects
+let tree2Array = new Array();   // array of 3d objects
+let tree2BoxArray =  new Array();   // checking for tree collision
+let bush1Array = new Array();   // array of 3d objects
+let bush1BoxArray = new Array();    // checking for bush collison
+let roadArray = new Array();    // array of 3d objects
+let isFirstTime = true; // bool for checking if game has been loaded for the first time
+let roadPositionsZ = [-0.23, 0, 0.23];  // left road, middle road, right road
+
+// Variables used for determining which objects need to be moved forward
+let currentLastRoad = 0;    
+let currentLastTree2 = 0;
+let currentLastTree3 = 0;
+let currentLastWall = 0;
+let currentLastBush1 = 0;
+
+/**
+ * This function takes in a max number and returns a number between 0 and max
+ * @param {int} max 
+ * @returns random int between 0 and max
+ */
 function getRandomInt(max) {
     return Math.floor(Math.random() * max);
   }
@@ -88,6 +94,10 @@ renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.render(scene, camera);
 
+/**
+ * This function loads the whole road, split up between three parts of the array
+ * Size of those parts is determined by the roadsPerLane variable
+ */
 function loadRoad(){
     let arrayLength;
     gltfLoader.load(
@@ -150,6 +160,9 @@ function loadWalls(){
         });
 }
 
+/**
+ * This function loads our carriage, which me move through the scene
+ */
 const loadCarriage = () => {
     gltfLoader.load(
         "objects/animierteKutsche.glb",
@@ -165,7 +178,9 @@ const loadCarriage = () => {
         }
     );
 };
-
+/**
+ * This function loads all of the wolves, which hunt the carriage and can collide with it
+ */
 const loadWolf = () => {
     let arrayLength;
     gltfLoader.load(
@@ -189,6 +204,10 @@ const loadWolf = () => {
     );
 };
 
+/**
+ * This function loads all of the trees, depending on the amountOfTrees variable
+ * Both carriage and wolves can collide with the Trees
+ */
 const loadTrees2 = () => {
     let arrayLength;
     gltfLoader.load(
@@ -211,6 +230,10 @@ const loadTrees2 = () => {
     );
 };
 
+/**
+ * This function loads all of the bushes, depending on the amountOfBushes variable
+ * Both carriage and wolves can collide with these bushes
+ */
 const loadBushes1 = () => {
     let arrayLength;
     gltfLoader.load(
@@ -251,6 +274,7 @@ loadingManager.onProgress = (url, itemsLoaded, itemsTotal) => {
 
 /**
  * This function adds everything we need to our scene
+ * Objects are loaded and light is added
  */
 async function setupScene(){
     // add lighting to our scene
@@ -285,7 +309,10 @@ async function setupScene(){
     loadWolf();
     loadBushes1();
 };
-
+/**
+ * This function will be constantly ran and animates everything in our scene
+ * We update our objects, animations, variables and camera
+ */
 const animate = () => {
     requestAnimationFrame(animate);
     timePassed = clock.getDelta();
@@ -303,25 +330,61 @@ const animate = () => {
         for(let i=0; i<3; i++){
             wolfXSpeed[i] += 0.01 / 1000;
         }
-        
         dataBuffer = updateRoads(carriage,roadArray,currentLastRoad,roadsPerLane);      // make sure roads that are not rendered get moved to the front
-        carriage = dataBuffer[0]
-        roadArray = dataBuffer[1]
-        currentLastRoad = dataBuffer[2]
-        roadsPerLane = dataBuffer[3]
+        carriage = dataBuffer.pCarriage
+        roadArray = dataBuffer.pRoadArray
+        currentLastRoad = dataBuffer.pCurrentLastRoad
+        roadsPerLane = dataBuffer.pRoadsPerLane
         dataBuffer = updateTrees2(carriage,tree2Array,currentLastTree2,tree2BoxArray,roadPositionsZ);
-        carriage = 
+        carriage = dataBuffer.pCarriage
+        tree2Array = dataBuffer.pTree2Array
+        currentLastTree2 = dataBuffer.pCurrentLastTree2
+        tree2BoxArray = dataBuffer.pTree2BoxArray
+        roadPositionsZ = dataBuffer.pRoadPositionsZ
         dataBuffer = updateBushes1(carriage,bush1Array,currentLastBush1,roadPositionsZ,bush1BoxArray);
+        carriage = dataBuffer.pCarriage
+        bush1Array = dataBuffer.pBush1Array
+        currentLastBush1 = dataBuffer.pCurrentLastBush1
+        roadPositionsZ = dataBuffer.pRoadPositionsZ
+        bush1BoxArray = dataBuffer.pBush1BoxArray
         updateCamera();
         dataBuffer = updateWalls(carriage,wallArray,currentLastWall,wallsPerSide);
+        carriage = dataBuffer.pCarriage
+        wallArray = dataBuffer.pWallArray
+        currentLastWall = dataBuffer.pCurrentLastWall
+        wallsPerSide = dataBuffer.pWallsPerSide
         dataBuffer = updateCarriage(carriage,carriageBox,tree2BoxArray,currentLastTree2,bush1BoxArray, currentLastBush1, xSpeed, zSpeed,wolvesBoxArray,wolvesArray,wolfXSpeed,wolfSetback,mixer,clips,wolfMixers,wolfClips);
+        carriage = dataBuffer.pCarriage
+        carriageBox = dataBuffer.pCarriageBox
+        tree2BoxArray = dataBuffer.pTree2BoxArray
+        currentLastTree2 = dataBuffer.pCurrentLastTree2
+        bush1BoxArray = dataBuffer.pBush1BoxArray
+        currentLastBush1 = dataBuffer.pCurrentLastBush1
+        xSpeed = dataBuffer.pXSpeed
+        zSpeed = dataBuffer.pZSpeed
+        wolvesBoxArray = dataBuffer.pWolvesBoxArray
+        wolvesArray = dataBuffer.pWolvesArray
+        wolfXSpeed = dataBuffer.pWolfXSpeed
+        wolfSetback = dataBuffer.pWolfSetback
+        mixer = dataBuffer.pMixer
+        clips = dataBuffer.pClips
+        wolfMixers = dataBuffer.pWolfMixers
+        wolfClips = dataBuffer.pWolfClips
+        if(dataBuffer.cGameOver){
+            gameOver();
+        }
         highscore += 0.5/10;
         highscoreElement.innerHTML = new String(Math.round(highscore),2)
     }
     renderer.render(scene, camera);
 };
 
+/**
+ * This function is ran when the game is over.
+ * It makes sure that the carriage stops and the gameOver Screen is shown when needed.
+ */
 function gameOver(){
+    console.log("Hello")
     xSpeed = 0; // if game is over, stop the carriage
     gamestarted = false;
     bGameOver = true;
@@ -389,6 +452,10 @@ function updateCamera(){
     camera.position.add(difDelta) // add difference, to move to object 
 }
 
+/**
+ * This function is used to handle the keyboard inputs
+ * @param {KeyboardEvent} event 
+ */
 function keyPressed(event){
     let keyNumber = event.which;
     switch(keyNumber){
@@ -425,6 +492,9 @@ function keyPressed(event){
     }
 }
 
+/**
+ * When the play Button is clicked, we need to start the game
+ */
 playButton.onclick = function(){
 
     audioMenu.pause();
