@@ -32,11 +32,11 @@ import * as THREE from "three";
 
 /**
  * This function is used to set forth the bushes, that have left the rendered view
- * @param {Object3D} pCarriage 
- * @param {Array&lt;Object3D>} pBush1Array 
- * @param {int} pCurrentLastBush1 
- * @param {Array&lt;int>} pRoadPositionsZ 
- * @param {Array&lt;Box3>} pBush1BoxArray 
+ * @param {Object3D} pCarriage our carriage Object3D
+ * @param {Array&lt;Object3D>} pBush1Array Array of small bushes, that fill our scene
+ * @param {int} pCurrentLastBush1 integer, which is used to measure which bush is currently the furthest back in x-
+ * @param {Array&lt;int>} pRoadPositionsZ array of 3 z-positions - left road, middle road, right road
+ * @param {Array&lt;Box3>} pBush1BoxArray Array of Box3's that are needed to check for collisions with the bushes
  * @returns changed params
  */
 function updateBushes1(pCarriage, pBush1Array, pCurrentLastBush1, pRoadPositionsZ, pBush1BoxArray){
@@ -69,11 +69,11 @@ function updateBushes1(pCarriage, pBush1Array, pCurrentLastBush1, pRoadPositions
 }
 /**
  * This function is used to set forth the trees, that have left the rendered view
- * @param {Object3D} pCarriage 
- * @param {Array&lt;Object3D>} pTree2Array 
- * @param {int} pCurrentLastTree2 
- * @param {Array&lt;Box3>} pTree2BoxArray 
- * @param {Array&lt;int>} pRoadPositionsZ 
+ * @param {Object3D} pCarriage our carriage Object3D
+ * @param {Array&lt;Object3D>} pTree2Array Array of big trees, which fill our scene
+ * @param {int} pCurrentLastTree2 integer, which is used to measure which Tree is currently the furthest back in x-
+ * @param {Array&lt;Box3>} pTree2BoxArray Array of Box3's that are needed to check for collisions with the Trees
+ * @param {Array&lt;int>} pRoadPositionsZ array of 3 z-positions - left road, middle road, right road
  * @returns changed params
  */
 function updateTrees2(pCarriage, pTree2Array, pCurrentLastTree2, pTree2BoxArray, pRoadPositionsZ){
@@ -107,11 +107,10 @@ function updateTrees2(pCarriage, pTree2Array, pCurrentLastTree2, pTree2BoxArray,
 }
 /**
  * This function is used to set forth the trees, that have left the rendered view
- * @param {Object3D} pCarriage
- * @param {Array&lt;Object3D>} pTree1Array
- * @param {int} pCurrentLastTree1
- * @param {Array&lt;Box3>} pTree1BoxArray
- * @param {Array&lt;int>} pRoadPositionsZ
+ * @param {Object3D} pCarriage our carriage Object3D
+ * @param {Array&lt;Object3D>} pWallArray Array of walls for the side of our scene
+ * @param {int} pCurrentLastWall integer, which is used to measure which Wall is furthest behind
+ * @param {int} pWallsPerSide how many walls do we need per side
  * @returns changed params
  */
 function updateWalls(pCarriage, pWallArray, pCurrentLastWall, pWallsPerSide){
@@ -140,10 +139,10 @@ function updateWalls(pCarriage, pWallArray, pCurrentLastWall, pWallsPerSide){
  * This function moves the roads that are furthest behind the carriage and
  * moves them to the "end of the road", so that the street is technically
  * endless
- * @param {Object3D} pCarriage 
- * @param {Array&lt;Object3D>} pRoadArray 
- * @param {int} pCurrentLastRoad 
- * @param {int} pRoadsPerLane 
+ * @param {Object3D} pCarriage our carriage Object3D
+ * @param {Array&lt;Object3D>} pRoadArray Array of our roads, which the carriage drives on
+ * @param {int} pCurrentLastRoad integer, which is used to measure which Road is furthest behind
+ * @param {int} pRoadsPerLane how many roads per lane do we need
  * @returns changed params
  */
 function updateRoads(pCarriage, pRoadArray, pCurrentLastRoad, pRoadsPerLane){
@@ -177,22 +176,22 @@ function updateRoads(pCarriage, pRoadArray, pCurrentLastRoad, pRoadsPerLane){
 /**
  * This function is used to update animations and position of the carriage accordingly
  * It checks for the x-axis speed of the carriage and evaluates it.
- * @param {Object3D} pCarriage 
- * @param {Box3} pCarriageBox 
- * @param {Array&lt;Object3D>} pTree2BoxArray 
- * @param {int} pCurrentLastTree2 
- * @param {Array&lt;Box3>} pBush1BoxArray 
- * @param {int} pCurrentLastBush1 
- * @param {float} pXSpeed 
- * @param {float} pZSpeed 
- * @param {Array&lt;Box3>} pWolvesBoxArray 
- * @param {Array&lt;Object3D>} pWolvesArray 
- * @param {float} pWolfXSpeed 
- * @param {Array&lt;bool>} pWolfSetback 
- * @param {AnimationMixer} pMixer 
- * @param {clips} pClips 
- * @param {AnimationMixer} pWolfMixers 
- * @param {clips} pWolfClips 
+ * @param {Object3D} pCarriage our carriage Object3D
+ * @param {Box3} pCarriageBox Box3 that measures the max and min values of our carriage
+ * @param {Array&lt;Object3D>} pTree2BoxArray Array of Box3's that are needed to check for collisions with the Trees
+ * @param {int} pCurrentLastTree2 integer, which is used to measure which Tree is currently the furthest back in x-
+ * @param {Array&lt;Box3>} pBush1BoxArray Array of Box3's that are needed to check for collisions with the bushes
+ * @param {int} pCurrentLastBush1 integer, which is used to measure which bush is currently the furthest back in x-
+ * @param {float} pXSpeed xSpeed of the carriage
+ * @param {float} pZSpeed zSpeed of the carriage
+ * @param {Array&lt;Box3>} pWolvesBoxArray Hitboxes of the wolves
+ * @param {Array&lt;Object3D>} pWolvesArray Array of wolves
+ * @param {float} pWolfXSpeed xSpeed of the wolves 
+ * @param {Array&lt;bool>} pWolfSetback bool array to check which wolf has been set back
+ * @param {AnimationMixer} pMixer Manages carriage animations
+ * @param {clips} pClips all of the carriage animations
+ * @param {AnimationMixer} pWolfMixers Manages wolf animations
+ * @param {clips} pWolfClips all of the wolf animations
  * @returns changed params plus bool for gameOver
  */
 function updateCarriage(pCarriage, pCarriageBox, pTree2BoxArray, pCurrentLastTree2, pBush1BoxArray, pCurrentLastBush1, pXSpeed, pZSpeed, pWolvesBoxArray, pWolvesArray, pWolfXSpeed, pWolfSetback,pMixer, pClips, pWolfMixers, pWolfClips){
@@ -300,7 +299,7 @@ export{updateBushes1, updateCarriage, updateRoads, updateTrees2, updateWalls};</
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.0</a> on Mon Nov 21 2022 21:11:18 GMT+0100 (Mitteleuropäische Normalzeit)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.0</a> on Mon Nov 21 2022 22:19:15 GMT+0100 (Mitteleuropäische Normalzeit)
 </footer>
 
 <script> prettyPrint(); </script>
