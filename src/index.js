@@ -73,7 +73,7 @@ let currentLastBush1 = 0;
 
 /**
  * This function takes in a max number and returns a number between 0 and max
- * @param {int} max 
+ * @param {int} max biggest integer that could be returned
  * @returns random int between 0 and max
  */
 function getRandomInt(max) {
@@ -455,7 +455,7 @@ function updateCamera(){
 
 /**
  * This function is used to handle the keyboard inputs
- * @param {KeyboardEvent} event 
+ * @param {KeyboardEvent} event Object of the Event that has occured on the keyboard
  */
 function keyPressed(event){
     let keyNumber = event.which;
@@ -526,7 +526,7 @@ playButton.onclick = function(){
 
 /**
  * This function shows the Instructions Screen
- * @param {MouseEvent} event 
+ * @param {MouseEvent} event Object of the Event that has occured on the mouse
  */
 introductionButton.onclick = function(){
     homeScreen.style.display = "none";
@@ -535,7 +535,7 @@ introductionButton.onclick = function(){
 
 /**
  * This function shows the Controls Screen
- * @param {MouseEvent} event 
+ * @param {MouseEvent} event Object of the Event that has occured on the mouse
  */
 controlButton.onclick = function(){
     homeScreen.style.display = "none";
@@ -544,7 +544,7 @@ controlButton.onclick = function(){
 
 /**
  * This function is to go back to the home screen
- * @param {MouseEvent} event 
+ * @param {MouseEvent} event Object of the Event that has occured on the mouse
  */
 backButton1.onclick = function(){
     homeScreen.style.display = "block";
@@ -554,7 +554,7 @@ backButton1.onclick = function(){
 
 /**
  * This function is to go back to the home screen
- * @param {MouseEvent} event 
+ * @param {MouseEvent} event Object of the Event that has occured on the mouse
  */
 backButton2.onclick = function(){
     homeScreen.style.display = "block";
