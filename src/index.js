@@ -4,7 +4,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 //import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { Box3, Vector3} from "three";
 import * as dat from "dat.gui";
-
+import {updateBushes1, updateCarriage, updateRoads, updateTrees2, updateWalls} from './updateObjects.js'
 // constants that rule the flow of the program
 let roadsPerLane = 15;
 let wallsPerSide = 2;
@@ -359,218 +359,17 @@ const animate = () => {
             wolfXSpeed[i] += 0.01 / 1000;
         }
         
-        updateRoads();      // make sure roads that are not rendered get moved to the front
-        updateTrees2();
-        updateBushes1();
+        updateRoads(carriage,roadArray,currentLastRoad,roadsPerLane);      // make sure roads that are not rendered get moved to the front
+        updateTrees2(carriage,tree2Array,currentLastTree2,tree2BoxArray,roadPositionsZ);
+        updateBushes1(carriage,bush1Array,currentLastBush1,roadPositionsZ,bush1BoxArray);
         updateCamera();
-        updateWalls();
-        updateCarriage();    // make sure our carriage is updated
+        updateWalls(carriage,wallArray,currentLastWall,wallsPerSide);
+        updateCarriage(carriage,carriageBox,tree2BoxArray,currentLastTree2,bush1BoxArray, currentLastBush1, xSpeed, zSpeed,wolvesBoxArray,wolvesArray,wolfXSpeed,wolfSetback,mixer,clips,wolfMixers,wolfClips);
         highscore += 0.5/10;
         highscoreElement.innerHTML = new String(Math.round(highscore),2)
     }
-    renderer.render(scene, camera); // render the updated scene
+    renderer.render(scene, camera);
 };
-
-function updateBushes1(){
-    /*  carriage starting position is: (0,0.085,0)
-    because the carriage only moves in the x-direction it is the only thing 
-    we need to evaluate */
-    let carriageXPos  = carriage.position.x;
-    let currentLastBushXPos = bush1Array[currentLastBush1].position.x;
-    let diffToCarriage = carriageXPos - currentLastBushXPos;
-    /*
-    0.538 is the x-length of a single road segment, therefore we need to jump
-    40*x-length 
-    If the last Tree is out of the rendered view (More than 1 Road segments away), move it to the front 
-    */
-    if(diffToCarriage > 1){
-        bush1Array[currentLastBush1].position.x += 20
-        // Randomly generate if the tree is assigned to a new lane, so the pattern does not repeat
-        bush1Array[currentLastBush1].position.z = roadPositionsZ[getRandomInt(3)]
-        // When we move the tree we also need to move the boundingBox
-        bush1BoxArray[currentLastBush1] = new Box3().setFromObject(bush1Array[currentLastBush1])
-        bush1BoxArray[currentLastBush1].max.z -= 0.05
-        bush1BoxArray[currentLastBush1].max.x -= 0.1
-        bush1BoxArray[currentLastBush1].min.x += 0.05
-        currentLastBush1++;
-    } 
-    if(currentLastBush1 > 9){
-        currentLastBush1 = 0;
-    }
-}
-function updateTrees2(){
-        /*  carriage starting position is: (0,0.085,0)
-    because the carriage only moves in the x-direction it is the only thing 
-    we need to evaluate */
-    let carriageXPos  = carriage.position.x;
-    let currentLastTreeXPos = tree2Array[currentLastTree2].position.x;
-    let diffToCarriage = carriageXPos - currentLastTreeXPos;
-    /*
-    0.538 is the x-length of a single road segment, therefore we need to jump
-    40*x-length 
-    If the last Tree is out of the rendered view (More than 1 Road segments away), move it to the front 
-    */
-    if(diffToCarriage > 1){
-        tree2Array[currentLastTree2].position.x += 55.538
-
-        // Randomly generate if the tree is assigned to a new lane, so the pattern does not repeat
-        tree2Array[currentLastTree2].position.z = roadPositionsZ[getRandomInt(3)]
-        // When we move the tree we also need to move the boundingBox
-        tree2BoxArray[currentLastTree2] = new Box3().setFromObject(tree2Array[currentLastTree2])
-        tree2BoxArray[currentLastTree2].max.z -= 0.05
-        tree2BoxArray[currentLastTree2].max.x -= 0.1
-        tree2BoxArray[currentLastTree2].min.x += 0.05
-        currentLastTree2++;
-    } 
-    if(currentLastTree2 > 9){
-        currentLastTree2 = 0;
-    }
-}
-function updateWalls(){
-    /*  carriage starting position is: (0,0.085,0)
-    because the carriage only moves in the x-direction it is the only thing 
-    we need to evaluate */
-    let carriageXPos  = carriage.position.x;
-    let currentLastWallXPos = wallArray[currentLastWall].position.x;
-    let diffToCarriage = carriageXPos - currentLastWallXPos;
-    /*
-    0.538 is the x-length of a single road segment, therefore we need to jump
-    40*x-length 
-    If the last Tree is out of the rendered view (More than 1 Road segments away), move it to the front 
-    */
-    if(diffToCarriage > 14){
-        wallArray[currentLastWall].position.x += 14*wallsPerSide;
-        wallArray[currentLastWall+wallsPerSide].position.x += 14*wallsPerSide;
-        currentLastWall++;
-    }
-    if(currentLastWall > wallsPerSide-1){
-        currentLastWall = 0;
-    }
-}
-/**
- * This function moves the roads that are furthest behind the carriage and
- * moves them to the "end of the road", so that the street is technically
- * endless
- */
-function updateRoads(){
-    /*  carriage starting position is: (0,0.085,0)
-    because the carriage only moves in the x-direction it is the only thing 
-    we need to evaluate */
-    let carriageXPos  = carriage.position.x;
-    let currentLastRoadXPos = roadArray[currentLastRoad].position.x;
-    let diffToCarriage = carriageXPos - currentLastRoadXPos;
-
-    /* we have three tracks - their indices are as follows 
-    track 1: 0-29
-    track 2: 30-59
-    track 3: 60-89
-    0.538 is the x-length of a single road segment, therefore we need to jump
-    20*x-length 
-    If the last Road is out of the rendered view (More than 1 Road segments away), move it to the front 
-    */
-    if(diffToCarriage > 1){
-        roadArray[currentLastRoad].position.x += 0.538*roadsPerLane;
-        roadArray[currentLastRoad+roadsPerLane].position.x += 0.538*roadsPerLane;
-        roadArray[currentLastRoad+roadsPerLane*2].position.x += 0.538*roadsPerLane;
-        currentLastRoad++;
-    }
-    if(currentLastRoad > roadsPerLane-1){
-        currentLastRoad = 0;
-    }
-    
-}
-
-/**
- * This function is used to update animations and position of the carriage accordingly
- * It checks for the x-axis speed of the carriage and evaluates it.
- */
-function updateCarriage(){
-    carriageBox = new Box3().setFromObject(carriage);
-    let doesCollide = carriageBox.intersectsBox(tree2BoxArray[currentLastTree2]);   // did carriage hit a tree
-    if(doesCollide){
-        gameOver();
-    }
-    doesCollide = carriageBox.intersectsBox(bush1BoxArray[currentLastBush1]);   // did carriage hit a bush
-    if(doesCollide){
-        carriage.position.x -= xSpeed/8
-    }
-    for(let i=0; i<3; i++){
-        wolvesBoxArray[i] = new Box3().setFromObject(wolvesArray[i])    // get current box of the wolf
-        wolvesBoxArray[i].max.z -= 0.4  // adjust box in z Coordinates so it matches the lanes
-        wolvesBoxArray[i].min.z += 0.3
-    }
-    wolvesBoxArray.forEach(function(box) {
-        box.max.x += 0.35
-        doesCollide = carriageBox.intersectsBox(box)
-        if(doesCollide){
-            gameOver();
-        }
-    })
-
-    carriage.position.x += xSpeed;
-    carriage.position.z += zSpeed;
-
-    // if wolves have moved, check if they collided with the last tree
-    let wolfDidCollide = new Array();
-    
-    for(let i=0; i<3; i++){
-        wolfDidCollide[i] = wolvesBoxArray[i].intersectsBox(tree2BoxArray[currentLastTree2]);
-        if(wolfDidCollide[i]){
-            wolfXSpeed[i] = xSpeed / 2  // if the wolf did collide, move it slowly out of the rendered view
-            wolfSetback[i] = true;
-        }
-    }
-    wolvesArray[0].position.x += wolfXSpeed[0];
-    wolvesArray[1].position.x += wolfXSpeed[1];
-    wolvesArray[2].position.x += wolfXSpeed[2];
-    // if wolf did not collide we can slowly move it back
-    let carriageXPos  = carriage.position.x;
-    let wolfPos;
-    let diffToCarriage;
-    for(let i=0; i<3; i++){
-        if(wolfSetback[i]){
-            wolfPos = wolvesArray[i].position.x
-            diffToCarriage = Math.abs(carriageXPos) - Math.abs(wolfPos)
-            if(diffToCarriage > 3.5){
-                wolfXSpeed[i] = xSpeed + 0.01
-            } else if(diffToCarriage <= .75){
-                wolfXSpeed[i] = xSpeed;    // if wolf arrived back, reset Speed and make sure position is stable
-                wolvesArray[i].position.x = carriage.position.x-0.75  
-                wolfSetback[i] = false // reset wolfSetback 
-            }
-        }
-    }
-    if(carriage.position.z >0.23 || carriage.position.z < -0.23 || (carriage.position.z < 0.001 && carriage.position.z > -0.001)){
-        zSpeed = 0;
-    }
-    if (xSpeed > 0){
-        clips.forEach(function(clip) {
-            const action = mixer.clipAction(clip);
-            action.play()
-            action.timeScale = (xSpeed)*100;
-        })
-        // wolves run if the carriage is still moving 
-            // index 0 - 01_Run
-            // index 1 - 02_walk
-            // index 2 - 03_creep
-            // index 3 - 04_Idle
-            // index 4 - 05_site
-            for(let i=0; i<3; i++){
-            const wolfAction = wolfMixers[i].clipAction(wolfClips[i][0])
-            wolfAction.play()
-            wolfAction.timeScale = (xSpeed)*40
-            }
-    } else {
-        clips.forEach(function(clip) {
-            const action = mixer.clipAction(clip);
-            action.stop()
-        })
-        for(let i=0; i<3; i++){
-            const wolfAction = wolfMixers[i].clipAction(wolfClips[i][0])
-            wolfAction.stop()
-        }
-    }
-}
 
 function gameOver(){
     xSpeed = 0; // if game is over, stop the carriage
@@ -726,3 +525,5 @@ backButton2.onclick = function(){
     controlScreen.style.display = "none";
 }
 setupScene();
+
+export {gameOver, getRandomInt}
