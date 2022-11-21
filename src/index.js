@@ -18,7 +18,7 @@ let audioMenu = document.getElementById("audioMenu")
 
 //create gui
 const gui = new dat.GUI();
-
+let dataBuffer = new Array();   // used to buffer return values from refactored functions
 let bGameOver = false;  // boolean for checking if game has ended
 let timePassed; // delta time since last frame has been renderer, used for animation updating
 let mixer; // animation mixer
@@ -211,29 +211,6 @@ const loadTrees2 = () => {
     );
 };
 
-const loadTrees3 = () => {
-    let arrayLength;
-    gltfLoader.load(
-        "objects/obstacles/baum3.glb",
-        (glb) => {
-            for(let i=0; i<10; i++){
-                /* z-position   left side: -0.23 
-                                middle: 0
-                                right side: 0.23
-                */
-                arrayLength = tree3Array.push(glb.scene.clone().children[0]);
-                tree3Array[arrayLength-1].scale.set(0.05,0.05,0.05);
-                tree3Array[arrayLength-1].position.set(2*i+5,0.05,roadPositionsZ[getRandomInt(3)]);
-                scene.add(tree3Array[arrayLength-1]);
-                tree3BoxArray.push(new Box3().setFromObject(tree3Array[arrayLength-1]));
-                tree3BoxArray[arrayLength-1].max.z -= 0.05
-                tree3BoxArray[arrayLength-1].max.x -= 0.1
-                tree3BoxArray[arrayLength-1].min.x += 0.05
-            }
-        }
-    );
-};
-
 const loadBushes1 = () => {
     let arrayLength;
     gltfLoader.load(
@@ -283,37 +260,13 @@ async function setupScene(){
     directionalLight.castShadow = true;
     directionalLight.intensity = 1.5;
     directionalLight.color = new THREE.Color(0xf230e);
-    //add second light
-    const directionalLight2 = new THREE.DirectionalLight( 0x333830, 1 );
-    directionalLight2.position.set( 2, 1, 0 );
-    directionalLight2.castShadow = true;
-    directionalLight2.intensity = 3;
-    directionalLight2.color = new THREE.Color(0x333830);
-    //gui add light
-    const directionalLight3 = new THREE.DirectionalLight( 0x1c1205, 1 );
-    directionalLight3.position.set( -1.1, 4.9, 0.1 );
-    directionalLight3.castShadow = true;
-    directionalLight.intensity = 4;
-    directionalLight3.color = new THREE.Color(0x1c1205);
 
     const light1 = gui.addFolder('Light 1');
-    const light2 = gui.addFolder('Light 2');
-    const light3 = gui.addFolder('Light 3');
     light1.add(directionalLight, 'intensity', 0, 10, 0.1);
     light1.add(directionalLight.position, 'x', -5, 5, 0.1);
     light1.add(directionalLight.position, 'y', -5, 5, 0.1);
     light1.add(directionalLight.position, 'z', -5, 5, 0.1);
     light1.add(directionalLight, 'castShadow');
-    light2.add(directionalLight2, 'intensity', 0, 10, 0.1);
-    light2.add(directionalLight2.position, 'x', -5, 5, 0.1);
-    light2.add(directionalLight2.position, 'y', -5, 5, 0.1);
-    light2.add(directionalLight2.position, 'z', -5, 5, 0.1);
-    light2.add(directionalLight2, 'castShadow');
-    light3.add(directionalLight3, 'intensity', 0, 10, 0.1);
-    light3.add(directionalLight3.position, 'x', -5, 5, 0.1);
-    light3.add(directionalLight3.position, 'y', -5, 5, 0.1);
-    light3.add(directionalLight3.position, 'z', -5, 5, 0.1);
-    light3.add(directionalLight3, 'castShadow');
     // gui color
     const color = {    
         color: 0xc2c5cc
@@ -321,15 +274,7 @@ async function setupScene(){
     light1.addColor(color, 'color').onChange(() => {
         directionalLight.color.set(color.color);
     });
-    light2.addColor(color, 'color').onChange(() => {
-        directionalLight2.color.set(color.color);
-    });
-    light3.addColor(color, 'color').onChange(() => {
-        directionalLight3.color.set(color.color);
-    });
     scene.add(directionalLight);
-    scene.add(directionalLight2);
-    scene.add(directionalLight3);
     // We need to load our objects
     loadCarriage();
     loadRoad();
@@ -359,12 +304,17 @@ const animate = () => {
             wolfXSpeed[i] += 0.01 / 1000;
         }
         
-        updateRoads(carriage,roadArray,currentLastRoad,roadsPerLane);      // make sure roads that are not rendered get moved to the front
-        updateTrees2(carriage,tree2Array,currentLastTree2,tree2BoxArray,roadPositionsZ);
-        updateBushes1(carriage,bush1Array,currentLastBush1,roadPositionsZ,bush1BoxArray);
+        dataBuffer = updateRoads(carriage,roadArray,currentLastRoad,roadsPerLane);      // make sure roads that are not rendered get moved to the front
+        carriage = dataBuffer[0]
+        roadArray = dataBuffer[1]
+        currentLastRoad = dataBuffer[2]
+        roadsPerLane = dataBuffer[3]
+        dataBuffer = updateTrees2(carriage,tree2Array,currentLastTree2,tree2BoxArray,roadPositionsZ);
+        carriage = 
+        dataBuffer = updateBushes1(carriage,bush1Array,currentLastBush1,roadPositionsZ,bush1BoxArray);
         updateCamera();
-        updateWalls(carriage,wallArray,currentLastWall,wallsPerSide);
-        updateCarriage(carriage,carriageBox,tree2BoxArray,currentLastTree2,bush1BoxArray, currentLastBush1, xSpeed, zSpeed,wolvesBoxArray,wolvesArray,wolfXSpeed,wolfSetback,mixer,clips,wolfMixers,wolfClips);
+        dataBuffer = updateWalls(carriage,wallArray,currentLastWall,wallsPerSide);
+        dataBuffer = updateCarriage(carriage,carriageBox,tree2BoxArray,currentLastTree2,bush1BoxArray, currentLastBush1, xSpeed, zSpeed,wolvesBoxArray,wolvesArray,wolfXSpeed,wolfSetback,mixer,clips,wolfMixers,wolfClips);
         highscore += 0.5/10;
         highscoreElement.innerHTML = new String(Math.round(highscore),2)
     }

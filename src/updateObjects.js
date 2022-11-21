@@ -27,6 +27,7 @@ function updateBushes1(pCarriage, pBush1Array, pCurrentLastBush1, pRoadPositions
     if(pCurrentLastBush1 > 9){
         pCurrentLastBush1 = 0;
     }
+    return {pCarriage, pBush1Array, pCurrentLastBush1, pRoadPositionsZ, pBush1BoxArray}
 }
 function updateTrees2(pCarriage, pTree2Array, pCurrentLastTree2, pTree2BoxArray, pRoadPositionsZ){
         /*  carriage starting position is: (0,0.085,0)
@@ -55,6 +56,7 @@ function updateTrees2(pCarriage, pTree2Array, pCurrentLastTree2, pTree2BoxArray,
     if(pCurrentLastTree2 > 9){
         pCurrentLastTree2 = 0;
     }
+    return {pCarriage, pTree2Array, pCurrentLastTree2, pTree2BoxArray, pRoadPositionsZ}
 }
 function updateWalls(pCarriage, pWallArray, pCurrentLastWall, pWallsPerSide){
     /*  carriage starting position is: (0,0.085,0)
@@ -76,6 +78,7 @@ function updateWalls(pCarriage, pWallArray, pCurrentLastWall, pWallsPerSide){
     if(pCurrentLastWall > pWallsPerSide-1){
         pCurrentLastWall = 0;
     }
+    return {pCarriage, pWallArray, pCurrentLastWall, pWallsPerSide}
 }
 /**
  * This function moves the roads that are furthest behind the carriage and
@@ -107,6 +110,7 @@ function updateRoads(pCarriage, pRoadArray, pCurrentLastRoad, pRoadsPerLane){
     if(pCurrentLastRoad > pRoadsPerLane-1){
         pCurrentLastRoad = 0;
     }
+    return {pCarriage, pRoadArray, pCurrentLastRoad, pRoadsPerLane}
 }
 
 /**
@@ -199,5 +203,6 @@ function updateCarriage(pCarriage, pCarriageBox, pTree2BoxArray, pCurrentLastTre
             wolfAction.stop()
         }
     }
+    return{pCarriage, pCarriageBox, pTree2BoxArray, pCurrentLastTree2, pBush1BoxArray, pCurrentLastBush1, pXSpeed, pZSpeed, pWolvesBoxArray, pWolvesArray, pWolfXSpeed, pWolfSetback,pMixer, pClips, pWolfMixers, pWolfClips}
 }
 export{updateBushes1, updateCarriage, updateRoads, updateTrees2, updateWalls};
