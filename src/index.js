@@ -34,7 +34,7 @@ highscoreElement.style.visibility='hidden';
 canvasElement.style.visibility="hidden";
 
 // Variables
-const gui = new dat.GUI();  // control gui 
+//const gui = new dat.GUI();  // control gui 
 let dataBuffer = new Array();   // used to buffer return values from refactored functions
 let bGameOver = false;  // boolean for checking if game has ended
 let timePassed; // delta time since last frame has been renderer, used for animation updating
