@@ -277,28 +277,29 @@ loadingManager.onProgress = (url, itemsLoaded, itemsTotal) => {
  * Objects are loaded and light is added
  */
 async function setupScene(){
-    // add lighting to our scene
-    // add lighting to our scene
+    // add first light
     const directionalLight = new THREE.DirectionalLight( 0xf230e, 1 );
     directionalLight.position.set( 0, -4, 0 );
     directionalLight.castShadow = true;
     directionalLight.intensity = 1.5;
     directionalLight.color = new THREE.Color(0xf230e);
-
-    const light1 = gui.addFolder('Light 1');
-    light1.add(directionalLight, 'intensity', 0, 10, 0.1);
-    light1.add(directionalLight.position, 'x', -5, 5, 0.1);
-    light1.add(directionalLight.position, 'y', -5, 5, 0.1);
-    light1.add(directionalLight.position, 'z', -5, 5, 0.1);
-    light1.add(directionalLight, 'castShadow');
-    // gui color
-    const color = {    
-        color: 0xc2c5cc
-    };
-    light1.addColor(color, 'color').onChange(() => {
-        directionalLight.color.set(color.color);
-    });
+    //add second light
+    const directionalLight2 = new THREE.DirectionalLight( 0x333830, 1 );
+    directionalLight2.position.set( 2, 1, 0 );
+    directionalLight2.castShadow = true;
+    directionalLight2.intensity = 3;
+    directionalLight2.color = new THREE.Color(0x333830);
+    //add third light
+    const directionalLight3 = new THREE.DirectionalLight( 0x1c1205, 1 );
+    directionalLight3.position.set( -1.1, 4.9, 0.1 );
+    directionalLight3.castShadow = true;
+    directionalLight.intensity = 4;
+    directionalLight3.color = new THREE.Color(0x1c1205);
+    //add lights to scene
     scene.add(directionalLight);
+    scene.add(directionalLight2);
+    scene.add(directionalLight3);
+
     // We need to load our objects
     loadCarriage();
     loadRoad();
@@ -523,27 +524,45 @@ playButton.onclick = function(){
     }
 }
 
+/**
+ * This function shows the Instructions Screen
+ * @param {MouseEvent} event 
+ */
 introductionButton.onclick = function(){
     homeScreen.style.display = "none";
     introductionScreen.style.display = "block";
 }
 
+/**
+ * This function shows the Controls Screen
+ * @param {MouseEvent} event 
+ */
 controlButton.onclick = function(){
     homeScreen.style.display = "none";
     controlScreen.style.display = "block";
 }
 
+/**
+ * This function is to go back to the home screen
+ * @param {MouseEvent} event 
+ */
 backButton1.onclick = function(){
     homeScreen.style.display = "block";
     introductionScreen.style.display = "none";
     controlScreen.style.display = "none";
 }
 
+/**
+ * This function is to go back to the home screen
+ * @param {MouseEvent} event 
+ */
 backButton2.onclick = function(){
     homeScreen.style.display = "block";
     introductionScreen.style.display = "none";
     controlScreen.style.display = "none";
 }
+
+
 setupScene();
 
 export {gameOver, getRandomInt}

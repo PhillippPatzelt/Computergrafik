@@ -1,14 +1,14 @@
-import { Box3, Vector3} from "three";
+import { AnimationMixer, Box3, Object3D, Vector3} from "three";
 import {gameOver, getRandomInt} from './index.js'
 import * as THREE from "three";
 
 /**
  * This function is used to set forth the bushes, that have left the rendered view
- * @param {3dObject} pCarriage 
- * @param {3dObject Array} pBush1Array 
+ * @param {Object3D} pCarriage 
+ * @param {Array<Object3D>} pBush1Array 
  * @param {int} pCurrentLastBush1 
- * @param {int Array} pRoadPositionsZ 
- * @param {Box3 Array} pBush1BoxArray 
+ * @param {Array<int>} pRoadPositionsZ 
+ * @param {Array<Box3>} pBush1BoxArray 
  * @returns changed params
  */
 function updateBushes1(pCarriage, pBush1Array, pCurrentLastBush1, pRoadPositionsZ, pBush1BoxArray){
@@ -41,11 +41,11 @@ function updateBushes1(pCarriage, pBush1Array, pCurrentLastBush1, pRoadPositions
 }
 /**
  * This function is used to set forth the trees, that have left the rendered view
- * @param {3d Object} pCarriage 
- * @param {3d Object Array} pTree2Array 
+ * @param {Object3D} pCarriage 
+ * @param {Array<Object3D>} pTree2Array 
  * @param {int} pCurrentLastTree2 
- * @param {Box3 Array} pTree2BoxArray 
- * @param {int Array} pRoadPositionsZ 
+ * @param {Array<Box3>} pTree2BoxArray 
+ * @param {Array<int>} pRoadPositionsZ 
  * @returns changed params
  */
 function updateTrees2(pCarriage, pTree2Array, pCurrentLastTree2, pTree2BoxArray, pRoadPositionsZ){
@@ -77,6 +77,15 @@ function updateTrees2(pCarriage, pTree2Array, pCurrentLastTree2, pTree2BoxArray,
     }
     return {pCarriage, pTree2Array, pCurrentLastTree2, pTree2BoxArray, pRoadPositionsZ}
 }
+/**
+ * This function is used to set forth the trees, that have left the rendered view
+ * @param {Object3D} pCarriage
+ * @param {Array<Object3D>} pTree1Array
+ * @param {int} pCurrentLastTree1
+ * @param {Array<Box3>} pTree1BoxArray
+ * @param {Array<int>} pRoadPositionsZ
+ * @returns changed params
+ */
 function updateWalls(pCarriage, pWallArray, pCurrentLastWall, pWallsPerSide){
     /*  carriage starting position is: (0,0.085,0)
     because the carriage only moves in the x-direction it is the only thing 
@@ -103,8 +112,8 @@ function updateWalls(pCarriage, pWallArray, pCurrentLastWall, pWallsPerSide){
  * This function moves the roads that are furthest behind the carriage and
  * moves them to the "end of the road", so that the street is technically
  * endless
- * @param {3dObject} pCarriage 
- * @param {3dObject Array} pRoadArray 
+ * @param {Object3D} pCarriage 
+ * @param {Array<Object3D>} pRoadArray 
  * @param {int} pCurrentLastRoad 
  * @param {int} pRoadsPerLane 
  * @returns changed params
@@ -140,21 +149,21 @@ function updateRoads(pCarriage, pRoadArray, pCurrentLastRoad, pRoadsPerLane){
 /**
  * This function is used to update animations and position of the carriage accordingly
  * It checks for the x-axis speed of the carriage and evaluates it.
- * @param {3dObject} pCarriage 
+ * @param {Object3D} pCarriage 
  * @param {Box3} pCarriageBox 
- * @param {3dObject Array} pTree2BoxArray 
+ * @param {Array<Object3D>} pTree2BoxArray 
  * @param {int} pCurrentLastTree2 
- * @param {Box3 Array} pBush1BoxArray 
+ * @param {Array<Box3>} pBush1BoxArray 
  * @param {int} pCurrentLastBush1 
  * @param {float} pXSpeed 
  * @param {float} pZSpeed 
- * @param {Box3 Array} pWolvesBoxArray 
- * @param {3dObject Array} pWolvesArray 
+ * @param {Array<Box3>} pWolvesBoxArray 
+ * @param {Array<Object3D>} pWolvesArray 
  * @param {float} pWolfXSpeed 
- * @param {bool Array} pWolfSetback 
- * @param {ThreeJS Mixer} pMixer 
+ * @param {Array<bool>} pWolfSetback 
+ * @param {AnimationMixer} pMixer 
  * @param {clips} pClips 
- * @param {ThreeJs Mixer} pWolfMixers 
+ * @param {AnimationMixer} pWolfMixers 
  * @param {clips} pWolfClips 
  * @returns changed params plus bool for gameOver
  */
